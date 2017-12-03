@@ -2,6 +2,9 @@ import discord
 import asyncio
 import random
 import pickle
+import logging
+
+logging.basicConfig(level=logging.INFO)
 
 client = discord.Client()
 
