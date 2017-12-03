@@ -1,7 +1,7 @@
 import discord
 import asyncio
 import random
-import pickle
+import json
 import logging
 
 logging.basicConfig(level=logging.INFO)
@@ -57,16 +57,16 @@ async def on_message(message):
             
         elif message.content.startswith('!addquote')
             if not quoteList:
-                with open("Bugsbot/quoteList.pk1","rb") as quoteFile:
-                    quoteList = pickle.load(quoteFile)
+                with open("Bugsbot/quoteList.pk1","r") as quoteFile:
+                    quoteList = json.load(quoteFile)
             quoteList[len(quoteList)] = message.content[9:]
-            with open("Bugsbot/quoteList.pk1","wb") as quoteFile:
-                pickle.dump(quoteList, quoteFile)
+            with open("Bugsbot/quoteList.pk1","w") as quoteFile:
+                json.dump(quoteList, quoteFile)
             
         elif message.content.startswith('!quote'):
             if not quoteList:
-                with open("Bugsbot/quoteList.pk1","rb") as quoteFile:
-                    quoteList = pickle.load(quoteFile)
+                with open("Bugsbot/quoteList.pk1","r") as quoteFile:
+                    quoteList = json.load(quoteFile)
             await client.send_message(message.channel, quoteList[random.randrange(0,len(quoteList)))
             
         elif message.content.startswith('!bedtime'):
