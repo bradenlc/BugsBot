@@ -54,13 +54,13 @@ async def on_message(message):
             
         elif message.content.startswith('!addquote')
             if not quoteList:
-                with open("quoteDoc.pk1","rb") as quoteFile
+                with open("Bugsbot/quoteList.pk1","rb") as quoteFile
                     quoteList = pickle.load(quoteFile)
             quoteList[len(quoteList)] = message.content[9:]
             
         elif message.content.startswith('!quote'):
             if not quoteList:
-                with open("quoteDoc,pk1","rb") as quoteFile:
+                with open("Bugsbot/quoteList.pk1","rb") as quoteFile:
                     quoteList = pickle.load(quoteFile)
             await client.send_message(message.channel, quoteList[random.randrange(0,len(quoteList)))
             
