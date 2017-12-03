@@ -1,6 +1,7 @@
 import discord
 import asyncio
 import random
+import pickle
 
 client = discord.Client()
 
@@ -50,6 +51,18 @@ async def on_message(message):
             #Parse out '!remindMe' (Everything after first space)
             await remind(reminder,message.author)
             await client.send_message(message.channel, 'Ok, ' + message.author + ', I\'ll remind you to ' + reminder + '.')
+            
+        elif message.content.startswith('!addquote')
+            if not quoteList:
+                with open("quoteDoc.pk1","rb") as quoteFile
+                    quoteList = pickle.load(quoteFile)
+            quoteList[len(quoteList)] = message.content[9:]
+            
+        elif message.content.startswith('!quote'):
+            if not quoteList:
+                with open("quoteDoc,pk1","rb") as quoteFile:
+                    quoteList = pickle.load(quoteFile)
+            await client.send_message(message.channel, quoteList[random.randrange(0,len(quoteList)))
             
         elif message.content.startswith('!bedtime'):
             if isAdmin(message.author):
