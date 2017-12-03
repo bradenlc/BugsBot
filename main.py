@@ -54,9 +54,11 @@ async def on_message(message):
             
         elif message.content.startswith('!addquote')
             if not quoteList:
-                with open("Bugsbot/quoteList.pk1","rb") as quoteFile
+                with open("Bugsbot/quoteList.pk1","rb") as quoteFile:
                     quoteList = pickle.load(quoteFile)
             quoteList[len(quoteList)] = message.content[9:]
+            with open("Bugsbot/quoteList.pk1","wb") as quoteFile:
+                pickle.dump(quoteList, quoteFile)
             
         elif message.content.startswith('!quote'):
             if not quoteList:
