@@ -4,15 +4,12 @@ import random
 import json
 import logging
 
-logger = logging.getLogger('discord')
-logger.setLevel(logging.DEBUG)
-handler = logging.FileHandler(filename='discord.log', encoding='utf-8', mode='w')
-handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
-logger.addHandler(handler)
+logging.basicConfig(level=logging.INFO)
 
 client = discord.Client()
 
 def checkIfJoined(player):
+    print('checking')
     for innedPlayer in innedPlayerlist:
         if innedPlayer == player:
             return True
@@ -20,15 +17,17 @@ def checkIfJoined(player):
 
 def isAdmin(user):
     #find if user is admin or mod. If so, return true
-    await client.send_message(message.channel, 'You don\'t have permission to use that command')
+    client.send_message(message.channel, 'You don\'t have permission to use that command')
 
 def remind(reminder, whoToRemind):
     #Add people to list of people to remind
     #Message the list periodically with reminders
+    pass
     
 def bedtime(message):
     if isAdmin(message.author):
         #Set 'bedtime' for user based on message parsing
+        pass
     
 @client.event
 async def on_ready():
@@ -36,21 +35,24 @@ async def on_ready():
     print(client.user.id, end="")
     print("is up and running!")
     print('------')
+    global innedPlayerlist
     innedPlayerlist = []
 
 @client.event
 async def on_message(message):
     if message.content.startswith('!'):
         if message.content.startswith('!join'):
-            if not checkIfJoined(message.author):
-                innedPlayerList.append(message.author)
-                await client.send_message(message.channel, 'You\'ve successfully joined the player list, ' + message.author + '. There are currently ' + str(playerList.length()) + 'players waiting for the game to start.')
+            if (not checkIfJoined(message.author)):
+                innedPlayerlist.append(message.author)
+                await client.send_message(message.channel, 'You\'ve successfully joined the player list, person. There are currently n players waiting for the game to start.')
+                await client.send_message(message.channel, 'You\'ve successfully joined the player list, <@{}>. There are currently {} players waiting for the game to start.'.format(message.author.id,str(len(innedPlayerlist))))
             else:
                 await client.send_message(message.channel, 'You\'re already on the player list!')
                 
         elif message.content.startswith('!start'):
             if playerList.length() > 4:
                 #Start game based on inned playerlist
+                pass
             else:
                 await client.send_message(message.channel, 'You need at least 5 players to start a game!')
             
@@ -59,7 +61,7 @@ async def on_message(message):
             await remind(reminder,message.author)
             await client.send_message(message.channel, 'Ok, ' + message.author + ', I\'ll remind you to ' + reminder + '.')
             
-        elif message.content.startswith('!addquote')
+        elif message.content.startswith('!addquote'):
             if not quoteList:
                 with open("Bugsbot/quoteList.pk1","r") as quoteFile:
                     quoteList = json.load(quoteFile)
@@ -71,7 +73,7 @@ async def on_message(message):
             if not quoteList:
                 with open("Bugsbot/quoteList.pk1","r") as quoteFile:
                     quoteList = json.load(quoteFile)
-            await client.send_message(message.channel, quoteList[random.randrange(0,len(quoteList)))
+            await client.send_message(message.channel, quoteList[random.randrange(0,len(quoteList))])
             
         elif message.content.startswith('!bedtime'):
             if isAdmin(message.author):
@@ -84,4 +86,6 @@ async def on_message(message):
                 #set modified reminder to reminder with all "your" changed to "their"
                 await remind(reminder,whoToRemind)
                 await client.send_message(message.channel, 'Ok, ' + message.author + ', I\'ll remind ' + whoToRemind + ' to ' + modifiedReminder)
-        
+
+        else:
+            await client.send_message(message.channel, 'That\'s not a valid command')
