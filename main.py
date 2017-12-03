@@ -1,5 +1,6 @@
 import discord
 import asyncio
+import random
 
 client = discord.Client()
 
@@ -8,6 +9,10 @@ def checkIfJoined(player):
         if innedPlayer == player:
             return True
     return False
+
+def isAdmin(user):
+    #find if user is admin or mod. If so, return true
+    await client.send_message(message.channel, 'You don\'t have permission to use that command')
 
 def remind(reminder, whoToRemind):
     #Add people to list of people to remind
@@ -44,17 +49,17 @@ async def on_message(message):
         elif message.content.startswith('!remindMe'):
             #Parse out '!remindMe' (Everything after first space)
             await remind(reminder,message.author)
-            await client.send_message(message.channel, 'Ok, ' + message.author + ', I\'ll remind you.')
+            await client.send_message(message.channel, 'Ok, ' + message.author + ', I\'ll remind you to ' + reminder + '.')
             
         elif message.content.startswith('!bedtime'):
             if isAdmin(message.author):
-              await bedtime(message)
-              
+                await bedtime(message)
               
         elif message.content.startswith('!remind '):
             if isAdmin(message.author):
                 #Take first UserID as whoToRemind
                 #Parse out first UserID and '!remind ' (everything after second space)
+                #set modified reminder to reminder with all "your" changed to "their"
                 await remind(reminder,whoToRemind)
-                await client.send_message(message.channel, 'Ok, ' + message.author + ', I\'ll remind ' + whoToRemind + ' to ' + reminder)
+                await client.send_message(message.channel, 'Ok, ' + message.author + ', I\'ll remind ' + whoToRemind + ' to ' + modifiedReminder)
         
