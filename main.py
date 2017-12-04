@@ -3,6 +3,7 @@ import asyncio
 import random
 import json
 import logging
+import SH
 
 logging.basicConfig(level=logging.INFO)
 
@@ -37,12 +38,6 @@ def initRoles(message):
     print("Duplicate Members: ")
     for x in duplicateMembers:
         print(x.name)
-        
-def checkIfJoined(player):
-    for innedPlayer in innedPlayerlist:
-        if innedPlayer == player:
-            return True
-    return False
 
 async def isAdmin(message):
     if message.author.server_permissions.manage_server and message.author.server_permissions.manage_roles:
@@ -66,23 +61,27 @@ async def on_ready():
     print(client.user.id, end="")
     print("is up and running!")
     print('------')
-    global innedPlayerlist
-    innedPlayerlist = []
 
 @client.event
 async def on_message(message):
     if message.content.startswith('!'):
         if message.content.startswith('!join'):
-            if (not checkIfJoined(message.author)):
-                innedPlayerlist.append(message.author)
+            if (not SH.checkIfJoined(message)):
+                message.channel.innedPlayerlist.append(message.author)
                 await client.send_message(message.channel, 'You\'ve successfully joined the player list, <@{}>. There are currently {} players waiting for the game to start.'.format(message.author.id,str(len(innedPlayerlist))))
             else:
                 await client.send_message(message.channel, 'You\'re already on the player list!')
-                
+
+        elif message.content.startswith('!leave'):
+            if SH.checkIfJoined(message):
+                message.channel.innedPlayerlist.remove(message.author)
+                await client.send_message(message.channel, 'You\'ve successfully removed yourself from the playerlist")
+            else:
+                await client.send_message(message.channel, 'You\'re not on the player list!')
+                                          
         elif message.content.startswith('!start'):
             if playerList.length() > 4:
-                #Start game based on inned playerlist
-                pass
+                SH.startGame(message)
             else:
                 await client.send_message(message.channel, 'You need at least 5 players to start a game!')
             
