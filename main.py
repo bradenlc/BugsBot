@@ -8,8 +8,42 @@ logging.basicConfig(level=logging.INFO)
 
 client = discord.Client()
 
+def initRoles(message):
+    roleDict = {}
+    uniqueRoles = []
+    membersAndUR = {}
+    simCount = 0
+    duplicateMembers = []
+    for r in message.server.roles:
+        roleDict[r] = 0
+    for m in message.server.members:
+        for mr in m.roles:
+            roleDict[mr] += 1
+    for r in roleDict:
+        if roleDict[r] == 1:
+            uniqueRoles.append(r)
+    for r in uniqueRoles:
+        for m in message.server.members:
+            for mr in m.roles:
+                if mr == r:
+                    membersAndUR[m]=r
+    for m1 in membersAndUR:
+        for m2 in membersAndUR:
+            if m1 == m2:
+                simCount += 1
+            if simCount == 2:
+                duplicateMembers.append(m1)
+        simCount = 0
+    for m in duplicateMembers:
+        for m2 in membersAndUR:
+            if m1 == m2:
+                membersAndUR.pop(m1)
+    print("Unique Roles: " + membersAndUR)
+    print("Duplicate Members: " + duplicateMembers)
+                    
+        
+
 def checkIfJoined(player):
-    print('checking')
     for innedPlayer in innedPlayerlist:
         if innedPlayer == player:
             return True
@@ -96,7 +130,10 @@ async def on_message(message):
                     reminder = reminder.replace("their","your")
                 else:
                     await client.send_message(message.channel, 'Ok, <@' + message.author.id + '>, I\'ll remind ' + whoToRemind + ' to ' + reminder)
-                remind(reminder,whoToRemind)                
+                remind(reminder,whoToRemind)
+
+        elif message.content.startswith('!initRoles'):
+            initRoles(message)
 
         else:
             await client.send_message(message.channel, 'That\'s not a valid command')
