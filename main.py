@@ -38,8 +38,12 @@ def initRoles(message):
         for m2 in membersAndUR:
             if m1 == m2:
                 membersAndUR.pop(m1)
-    print("Unique Roles: " + membersAndUR)
-    print("Duplicate Members: " + duplicateMembers)
+    print("Unique Roles: ")
+    for x in membersAndUR:
+        print(x + ' : ' + membersAndUR[x])
+    print("Duplicate Members: ")
+    for x in duplicateMembers:
+        print(x)
                     
         
 
