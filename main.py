@@ -37,9 +37,7 @@ def initRoles(message):
     print("Duplicate Members: ")
     for x in duplicateMembers:
         print(x.name)
-                    
         
-
 def checkIfJoined(player):
     for innedPlayer in innedPlayerlist:
         if innedPlayer == player:
@@ -97,11 +95,13 @@ async def on_message(message):
             await client.send_message(message.channel, 'Ok, <@' + message.author.id + '>, I\'ll remind you to ' + reminder + '.')
             
         elif message.content.startswith('!addquote'):
-            if not quoteList:
-                with open("Bugsbot/quoteList.pk1","r") as quoteFile:
+            try:
+                len(quoteList)
+            except NameError:
+                with open("quoteList.pk1","r") as quoteFile:
                     quoteList = json.load(quoteFile)
             quoteList[len(quoteList)] = message.content[9:]
-            with open("Bugsbot/quoteList.pk1","w") as quoteFile:
+            with open("quoteList.pk1","w") as quoteFile:
                 json.dump(quoteList, quoteFile)
             
         elif message.content.startswith('!quote'):
