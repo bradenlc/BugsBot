@@ -89,7 +89,7 @@ async def on_message(message):
                 print(reminder)
                 print(whoToRemind)
                 remind(reminder,whoToRemind)
-                reminder.replace("your","their")
+                reminder = reminder.replace("your","their")
                 await client.send_message(message.channel, 'Ok, <@' + message.author.id + '>, I\'ll remind ' + whoToRemind + ' to ' + reminder)
 
         else:
