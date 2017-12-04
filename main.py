@@ -17,14 +17,13 @@ def checkIfJoined(player):
 
 async def isAdmin(message):
     #find if user is admin or mod. If so, return true
-    print("test")
     await client.send_message(message.channel, 'You don\'t have permission to use that command')
     return True
 
 def remind(reminder, whoToRemind):
     #Add people to list of people to remind
     #Message the list periodically with reminders
-    print("test2")
+    pass
     
 def bedtime(message):
     if isAdmin(message.author):
@@ -46,7 +45,6 @@ async def on_message(message):
         if message.content.startswith('!join'):
             if (not checkIfJoined(message.author)):
                 innedPlayerlist.append(message.author)
-                await client.send_message(message.channel, 'You\'ve successfully joined the player list, person. There are currently n players waiting for the game to start.')
                 await client.send_message(message.channel, 'You\'ve successfully joined the player list, <@{}>. There are currently {} players waiting for the game to start.'.format(message.author.id,str(len(innedPlayerlist))))
             else:
                 await client.send_message(message.channel, 'You\'re already on the player list!')
@@ -59,8 +57,11 @@ async def on_message(message):
                 await client.send_message(message.channel, 'You need at least 5 players to start a game!')
             
         elif message.content.startswith('!remindMe'):
-            #Parse out '!remindMe' (Everything after first space)
-            await remind(reminder,message.author)
+            reminder = message.content[10:]
+            if reminder.startswith('to '):
+                reminder = reminder[3:]
+            reminder = reminder.replace("my","your")
+            remind(reminder,message.author)
             await client.send_message(message.channel, 'Ok, ' + message.author + ', I\'ll remind you to ' + reminder + '.')
             
         elif message.content.startswith('!addquote'):
@@ -86,6 +87,11 @@ async def on_message(message):
                 messageComponents = message.content.split(" ",2)
                 whoToRemind = messageComponents[1]
                 reminder = messageComponents[2]
+                if reminder.startswith("to "):
+                    reminder = reminder[3:]
+                    reminder = reminder.replace("his","your")
+                    reminder = reminder.replace("her","your")
+                    reminder = reminder.replace("their","your")
                 print(reminder)
                 print(whoToRemind)
                 remind(reminder,whoToRemind)
