@@ -16,9 +16,10 @@ def checkIfJoined(player):
     return False
 
 async def isAdmin(message):
-    #find if user is admin or mod. If so, return true
+    if message.author.server_permissions.manage_server and message.author.server_permissions.manage_roles:
+        return True 
     await client.send_message(message.channel, 'You don\'t have permission to use that command')
-    return True
+    return False
 
 def remind(reminder, whoToRemind):
     #Add people to list of people to remind
