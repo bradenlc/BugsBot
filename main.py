@@ -134,5 +134,4 @@ async def on_message(message):
 
         else:
             await client.send_message(message.channel, 'That\'s not a valid command')
-
-client.run('Mzg2OTYzOTIyMDEzNjUwOTU1.DQYrJw.U713vS30TRd4OQ8goAEKrDdyKLo')
+            
