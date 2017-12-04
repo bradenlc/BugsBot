@@ -26,24 +26,17 @@ def initRoles(message):
         for m in message.server.members:
             for mr in m.roles:
                 if mr == r:
-                    membersAndUR[m]=r
-    for m1 in membersAndUR:
-        for m2 in membersAndUR:
-            if m1 == m2:
-                simCount += 1
-            if simCount == 2:
-                duplicateMembers.append(m1)
-        simCount = 0
-    for m in duplicateMembers:
-        for m2 in membersAndUR:
-            if m1 == m2:
-                membersAndUR.pop(m1)
+                    if not m in membersAndUR:
+                        membersAndUR[m]=r
+                    else:
+                        duplicateMembers.append(m)
+                        membersAndUR.pop(m)
     print("Unique Roles: ")
     for x in membersAndUR:
-        print(x.nick + ' : ' + membersAndUR[x].name)
+        print(x.name + ' : ' + membersAndUR[x].name)
     print("Duplicate Members: ")
     for x in duplicateMembers:
-        print(x.nick)
+        print(x.name)
                     
         
 
