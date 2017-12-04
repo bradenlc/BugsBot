@@ -81,11 +81,14 @@ async def on_message(message):
               
         elif message.content.startswith('!remind '):
             if isAdmin(message.author):
-                #Take first UserID as whoToRemind
-                #Parse out first UserID and '!remind ' (everything after second space)
-                #set modified reminder to reminder with all "your" changed to "their"
+                messageComponents = message.content.split(" ",2)
+                messageComponents[1] = whoToRemind
+                messageComponents[2] = reminder
                 await remind(reminder,whoToRemind)
-                await client.send_message(message.channel, 'Ok, ' + message.author + ', I\'ll remind ' + whoToRemind + ' to ' + modifiedReminder)
+                reminder.replace("your","their")
+                await client.send_message(message.channel, 'Ok, <@' + message.author.id + '>, I\'ll remind ' + whoToRemind + ' to ' + reminder)
 
         else:
             await client.send_message(message.channel, 'That\'s not a valid command')
+
+client.run('Mzg2OTYzOTIyMDEzNjUwOTU1.DQYrJw.U713vS30TRd4OQ8goAEKrDdyKLo')
