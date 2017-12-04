@@ -40,10 +40,10 @@ def initRoles(message):
                 membersAndUR.pop(m1)
     print("Unique Roles: ")
     for x in membersAndUR:
-        print(x + ' : ' + membersAndUR[x])
+        print(x.nick + ' : ' + membersAndUR[x].name)
     print("Duplicate Members: ")
     for x in duplicateMembers:
-        print(x)
+        print(x.nick)
                     
         
 
