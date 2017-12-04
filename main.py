@@ -90,14 +90,13 @@ async def on_message(message):
                 reminder = messageComponents[2]
                 if reminder.startswith("to "):
                     reminder = reminder[3:]
+                    await client.send_message(message.channel, 'Ok, <@' + message.author.id + '>, I\'ll remind ' + whoToRemind + ' to ' + reminder)
                     reminder = reminder.replace("his","your")
                     reminder = reminder.replace("her","your")
                     reminder = reminder.replace("their","your")
-                print(reminder)
-                print(whoToRemind)
-                remind(reminder,whoToRemind)
-                reminder = reminder.replace("your","their")
-                await client.send_message(message.channel, 'Ok, <@' + message.author.id + '>, I\'ll remind ' + whoToRemind + ' to ' + reminder)
+                else:
+                    await client.send_message(message.channel, 'Ok, <@' + message.author.id + '>, I\'ll remind ' + whoToRemind + ' to ' + reminder)
+                remind(reminder,whoToRemind)                
 
         else:
             await client.send_message(message.channel, 'That\'s not a valid command')
