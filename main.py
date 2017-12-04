@@ -62,7 +62,7 @@ async def on_message(message):
                 reminder = reminder[3:]
             reminder = reminder.replace("my","your")
             remind(reminder,message.author)
-            await client.send_message(message.channel, 'Ok, ' + message.author + ', I\'ll remind you to ' + reminder + '.')
+            await client.send_message(message.channel, 'Ok, <@' + message.author.id + '>, I\'ll remind you to ' + reminder + '.')
             
         elif message.content.startswith('!addquote'):
             if not quoteList:
