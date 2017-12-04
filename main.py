@@ -80,7 +80,7 @@ async def on_message(message):
                 await client.send_message(message.channel, 'You\'re not on the player list!')
                                           
         elif message.content.startswith('!start'):
-            if playerList.length() > 4:
+            if len(message.channel.playerList) > 4:
                 SH.startGame(message)
             else:
                 await client.send_message(message.channel, 'You need at least 5 players to start a game!')
