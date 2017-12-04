@@ -15,8 +15,9 @@ def checkIfJoined(player):
             return True
     return False
 
-def isAdmin(message):
+async def isAdmin(message):
     #find if user is admin or mod. If so, return true
+    print("test")
     client.send_message(message.channel, 'You don\'t have permission to use that command')
 
 def remind(reminder, whoToRemind):
@@ -82,8 +83,8 @@ async def on_message(message):
         elif message.content.startswith('!remind '):
             if isAdmin(message):
                 messageComponents = message.content.split(" ",2)
-                messageComponents[1] = whoToRemind
-                messageComponents[2] = reminder
+                whoToRemind = messageComponents[1]
+                reminder = messageComponents[2]
                 await remind(reminder,whoToRemind)
                 reminder.replace("your","their")
                 await client.send_message(message.channel, 'Ok, <@' + message.author.id + '>, I\'ll remind ' + whoToRemind + ' to ' + reminder)
