@@ -15,7 +15,7 @@ def checkIfJoined(player):
             return True
     return False
 
-def isAdmin(user):
+def isAdmin(message):
     #find if user is admin or mod. If so, return true
     client.send_message(message.channel, 'You don\'t have permission to use that command')
 
@@ -76,11 +76,11 @@ async def on_message(message):
             await client.send_message(message.channel, quoteList[random.randrange(0,len(quoteList))])
             
         elif message.content.startswith('!bedtime'):
-            if isAdmin(message.author):
+            if isAdmin(message):
                 await bedtime(message)
               
         elif message.content.startswith('!remind '):
-            if isAdmin(message.author):
+            if isAdmin(message):
                 messageComponents = message.content.split(" ",2)
                 messageComponents[1] = whoToRemind
                 messageComponents[2] = reminder
