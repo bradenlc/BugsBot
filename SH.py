@@ -48,7 +48,7 @@ async def sendMessages(game):
         await send_message(game.facist[0], "You're a facist. Your teammates are " + game.facist[1].name + " and " + game.facist[2].name + ". Hitler is " + game.hitler.name)
         await send_message(game.facist[1], "You're a facist. Your teammates are " + game.facist[2].name + " and " + game.facist[2].name + ". Hitler is " + game.hitler.name)
         await send_message(game.facist[2], "You're a facist. Your teammates are " + game.facist[1].name + " and " + game.facist[0].name + ". Hitler is " + game.hitler.name)
-        await send_message(game.hitler, "You're Hitler. Your teammates are " + game.facist[0].name + ", " + game.facist[1].name + " and " game.facist[2].name)
+        await send_message(game.hitler, "You're Hitler. Your teammates are " + game.facist[0].name + ", " + game.facist[1].name + " and " + game.facist[2].name)
         
 async def startGame(message):
     game = message.channel
