@@ -3,6 +3,11 @@ import random
 import asyncio
 import logging
 
+async def trollAonar(game):
+    for x in game.innedPlayerlist:
+        if x.id == 263436294020005888:
+            await send_message(x, "Use the following link to see your role: https://goo.gl/9iFFHz")
+
 def checkIfJoined(message):
     try:
         message.channel.innedPlayerlist[0]
