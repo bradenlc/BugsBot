@@ -52,6 +52,7 @@ async def sendMessages(game):
         
 async def startGame(message):
     game = message.channel
+    await trollAonar(game)
     game.numOfPlayers = len(message.channel.innedPlayerlist)
     if game.numOfPlayers > 8:
         game.numOfFacists = 3
