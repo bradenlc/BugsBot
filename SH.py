@@ -50,6 +50,10 @@ async def sendMessages(game):
         await send_message(game.facist[2], "You're a facist. Your teammates are " + game.facist[1].name + " and " + game.facist[0].name + ". Hitler is " + game.hitler.name)
         await send_message(game.hitler, "You're Hitler. Your teammates are " + game.facist[0].name + ", " + game.facist[1].name + " and " + game.facist[2].name)
         
+async def assignPres(game):
+    game.president = game.innedPlayerList[game.presidentCounter%game.numOfPlayers]
+    await send_message(game, "The president is " + game.president.name)
+
 async def startGame(message):
     game = message.channel
     await trollAonar(game)
@@ -65,3 +69,9 @@ async def startGame(message):
         game.gameMode = 1
     assignRoles(game)
     await sendMessages(game)
+    game.presidentCounter = random.randrange(0,game.numOfPlayers)
+    while not game.over:
+        await assignPres(game)
+        #Turn of game here
+        game.presidentCounter += 1
+    
