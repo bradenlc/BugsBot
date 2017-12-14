@@ -6,7 +6,7 @@ import logging
 async def trollAonar(game):
     for x in game.innedPlayerlist:
         if x.id == 263436294020005888:
-            await send_message(x, "Use the following link to see your role: https://goo.gl/9iFFHz")
+            await send_message(x, "Use the following link to see your role: <https://goo.gl/9iFFHz>")
 
 def checkIfJoined(message):
     try:
@@ -53,6 +53,35 @@ async def sendMessages(game):
 async def assignPres(game):
     game.president = game.innedPlayerList[game.presidentCounter%game.numOfPlayers]
     await send_message(game, "The president is " + game.president.name)
+    await send_message(game, "Nominate a player for Chancelor by using !nominate @playername")
+
+async def nomination(game):
+    playerNominated = False
+    while not playerNominated:
+        nominationMessage = await client.wait_for_message(author=game.president, channel = game)
+        if nominationMessage.content.startswith("!nominate "):
+            tempList = nominationMessage.content.split("<")
+            if tempList[1].startswith("@"):
+                game.nominatedPlayer = get_user_info(tempList[1][1:])
+                playerNominated = True
+            else:
+                await send_message(game, "You didn't enter a valid nomination message!")
+
+async def vote(game):
+    game.voteArray = {}
+    votesCast = 0
+    for player in game.innedPlayerList:
+        game.voteArray[player] = "uncast"
+    while not votesCast==game.numOfPlayers:
+        votingMessage = await client.wait_for_message(channel=game)
+        if votingMessage.content == "!y" and (votingMessage.author in game.innedPlayerList):
+            if game.voteArray[votingMessage.author] == "uncast":
+                votesCast = votesCast + 1
+            game.voteArray[votingMessage.author] = True
+        elif votingMessage.content == "!n" and (votingMessage.author in game.innedPlayerList):
+            if game.voteArray[votingMessage.author] == "uncast":
+                votesCast = votesCast + 1
+            game.voteArray[votingMessage.author] = False
 
 async def startGame(message):
     game = message.channel
@@ -72,6 +101,7 @@ async def startGame(message):
     game.presidentCounter = random.randrange(0,game.numOfPlayers)
     while not game.over:
         await assignPres(game)
-        #Turn of game here
+        await nomination(game)
+        await vote(game)
         game.presidentCounter += 1
     
