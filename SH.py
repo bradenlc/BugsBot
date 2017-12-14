@@ -64,6 +64,7 @@ async def nomination(game):
             if tempList[1].startswith("@"):
                 game.nominatedPlayer = get_user_info(tempList[1][1:])
                 playerNominated = True
+                await send_message(game, "President {} has nominated {} for Chancellor. Please vote with '!y' or '!n'".format(game.president.name, game.nominatedPlayer.name))
             else:
                 await send_message(game, "You didn't enter a valid nomination message!")
 
@@ -84,9 +85,9 @@ async def vote(game):
             game.voteArray[votingMessage.author] = False
 
 def countVote(game):
+    yesVotes = 0
+    noVotes = 0
     for player in innedPlayerlist:
-        yesVotes = 0
-        noVotes = 0
         if game.voteArray[player] == True:
             yesVotes = yesVotes + 1
         elif game.voteArray[player] == False:
@@ -94,6 +95,22 @@ def countVote(game):
         else:
             await send_message(game, "Someone voted something other than yes or no!")
             #Should never happen. Just diagnostic
+    if yesVotes > noVotes:
+        return True
+    else:
+        return False
+
+async def presPolicies(game):
+    pass
+
+async def chancellorPolicies(game):
+    pass
+
+def addPolicy(game, policy):
+    pass
+
+async def checkIfWon(game):
+    pass
 
 async def startGame(message):
     game = message.channel
@@ -111,14 +128,42 @@ async def startGame(message):
     assignRoles(game)
     await sendMessages(game)
     game.presidentCounter = random.randrange(0,game.numOfPlayers)
+    game.over = False
+    game.policyDeck = ["Facist","Facist","Facist","Facist","Facist","Facist","Facist","Facist","Facist","Facist","Facist","Liberal","Liberal","Liberal","Liberal","Liberal","Liberal"]
+    game.fullDeck = ["Facist","Facist","Facist","Facist","Facist","Facist","Facist","Facist","Facist","Facist","Facist","Liberal","Liberal","Liberal","Liberal","Liberal","Liberal"]
     main(game)
 
 async def main(game):
     while not game.over:
-        await assignPres(game)
-        await nomination(game)
-        await vote(game)
-        game.voteOutcome = countVote(game)
-        
-        game.presidentCounter += 1
+        failedElections = 0
+        playerElected = False
+        while not playerElected:
+            await assignPres(game)
+            await nomination(game)
+            await vote(game)
+            game.voteOutcome = countVote(game)
+            if game.voteOutcome:
+                game.chancellor = game.nominatedPlayer
+                #game.over = await checkIfWon(game)
+                if game.over:
+                    break
+                else:
+                    await send_message(game, "The vote succeeded! President {} and Chancellor {} are now choosing policies.".format(game.president.name, game.chancellor.name))
+                playerElected = True
+            elif failedElections<2:
+                failedElections = failedElections + 1
+            else:
+                topPolicy = game.policyDeck[random.randrange(0,len(game.policyDeck))]
+                #addPolicy(game, topPolicy)
+                await send_message(game, "Because 3 governments failed, a {} policy was enacted at random".format(topPolicy))
+                failedElections = 0
+        if game.over:
+            break
+        else:
+            #presPolicies(game)
+            #chancellorPolicies(game)
+            #addPolicy(game, game.enactedPolicy)
+            #await send_message(game, "President {} and Chancellor {} have enacted a {} policy".format(game.president.name, game.chancellor.name, game.enactedPolicy))
+            #game.over = await checkIfWon(game)
+            game.presidentCounter += 1
     
