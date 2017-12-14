@@ -6,7 +6,7 @@ import logging
 async def trollAonar(game):
     for x in game.innedPlayerlist:
         if x.id == 263436294020005888:
-            await send_message(x, "Use the following link to see your role: <https://goo.gl/9iFFHz>")
+            await client.send_message(x, "Use the following link to see your role: <https://goo.gl/9iFFHz>")
 
 def checkIfJoined(message):
     try:
@@ -38,22 +38,22 @@ def assignRoles(game):
 
 async def sendMessages(game):
     if game.gameMode == 1:
-        await send_message(game.hitler, "You're Hitler. Your facist teammate is " + game.facists[0].name)
-        await send_message(game.facist[0], "You're a facist. Your job is to help Hitler, " + game.hitler.name)
+        await client.send_message(game.hitler, "You're Hitler. Your facist teammate is " + game.facists[0].name)
+        await client.send_message(game.facist[0], "You're a facist. Your job is to help Hitler, " + game.hitler.name)
     elif game.gameMode == 2:
-        await send_message(game.hitler, "You're Hitler. Because you have more than one teammate, you don't get to know who they are")
-        await send_message(game.facist[0], "You're a facist. Your teammate is " + game.facist[1].name + " and Hitler is " + game.hitler.name)
-        await send_message(game.facist[1], "You're a facist. Your teammate is " + game.facist[0].name + " and Hitler is " + game.hitler.name)
+        await client.send_message(game.hitler, "You're Hitler. Because you have more than one teammate, you don't get to know who they are")
+        await client.send_message(game.facist[0], "You're a facist. Your teammate is " + game.facist[1].name + " and Hitler is " + game.hitler.name)
+        await client.send_message(game.facist[1], "You're a facist. Your teammate is " + game.facist[0].name + " and Hitler is " + game.hitler.name)
     elif game.gameMode == 3:
-        await send_message(game.facist[0], "You're a facist. Your teammates are " + game.facist[1].name + " and " + game.facist[2].name + ". Hitler is " + game.hitler.name)
-        await send_message(game.facist[1], "You're a facist. Your teammates are " + game.facist[2].name + " and " + game.facist[2].name + ". Hitler is " + game.hitler.name)
-        await send_message(game.facist[2], "You're a facist. Your teammates are " + game.facist[1].name + " and " + game.facist[0].name + ". Hitler is " + game.hitler.name)
-        await send_message(game.hitler, "You're Hitler. Your teammates are " + game.facist[0].name + ", " + game.facist[1].name + " and " + game.facist[2].name)
+        await client.send_message(game.facist[0], "You're a facist. Your teammates are " + game.facist[1].name + " and " + game.facist[2].name + ". Hitler is " + game.hitler.name)
+        await client.send_message(game.facist[1], "You're a facist. Your teammates are " + game.facist[2].name + " and " + game.facist[2].name + ". Hitler is " + game.hitler.name)
+        await client.send_message(game.facist[2], "You're a facist. Your teammates are " + game.facist[1].name + " and " + game.facist[0].name + ". Hitler is " + game.hitler.name)
+        await client.send_message(game.hitler, "You're Hitler. Your teammates are " + game.facist[0].name + ", " + game.facist[1].name + " and " + game.facist[2].name)
         
 async def assignPres(game):
     game.president = game.innedPlayerlist[game.presidentCounter%game.numOfPlayers]
-    await send_message(game, "The president is " + game.president.name)
-    await send_message(game, "Nominate a player for Chancelor by using !nominate @playername")
+    await client.send_message(game, "The president is " + game.president.name)
+    await client.send_message(game, "Nominate a player for Chancelor by using !nominate @playername")
 
 async def nomination(game):
     playerNominated = False
@@ -64,9 +64,9 @@ async def nomination(game):
             if tempList[1].startswith("@"):
                 game.nominatedPlayer = get_user_info(tempList[1][1:])
                 playerNominated = True
-                await send_message(game, "President {} has nominated {} for Chancellor. Please vote with '!y' or '!n'".format(game.president.name, game.nominatedPlayer.name))
+                await client.send_message(game, "President {} has nominated {} for Chancellor. Please vote with '!y' or '!n'".format(game.president.name, game.nominatedPlayer.name))
             else:
-                await send_message(game, "You didn't enter a valid nomination message!")
+                await client.send_message(game, "You didn't enter a valid nomination message!")
 
 async def vote(game):
     game.voteArray = {}
@@ -116,7 +116,12 @@ def genPolicies(game):
         genPolicies(game)
 
 async def presPolicies(game):
-    pass
+    await client.send_message(game.president, "You drew the following 3 policies:")
+    await client.send_message(game.president, "1: {}".format(game.turnDeck[0]))
+    await client.send_message(game.president, "2: {}".format(game.turnDeck[1]))
+    await client.send_message(game.president, "3: {}".format(game.turnDeck[2]))
+    await client.send_message(game.president, "Please select a policy to discard by saying '!d #'")
+    await client.wait_for_message(
 
 async def chancellorPolicies(game):
     pass
@@ -163,14 +168,14 @@ async def main(game):
                 if game.over:
                     break
                 else:
-                    await send_message(game, "The vote succeeded! President {} and Chancellor {} are now choosing policies.".format(game.president.name, game.chancellor.name))
+                    await client.send_message(game, "The vote succeeded! President {} and Chancellor {} are now choosing policies.".format(game.president.name, game.chancellor.name))
                 playerElected = True
             elif failedElections<2:
                 failedElections = failedElections + 1
             else:
                 topPolicy = game.policyDeck[random.randrange(0,len(game.policyDeck))]
                 #addPolicy(game, topPolicy)
-                await send_message(game, "Because 3 governments failed, a {} policy was enacted at random".format(topPolicy))
+                await client.send_message(game, "Because 3 governments failed, a {} policy was enacted at random".format(topPolicy))
                 failedElections = 0
         if game.over:
             break
