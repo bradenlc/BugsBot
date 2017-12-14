@@ -51,7 +51,7 @@ async def sendMessages(game):
         await send_message(game.hitler, "You're Hitler. Your teammates are " + game.facist[0].name + ", " + game.facist[1].name + " and " + game.facist[2].name)
         
 async def assignPres(game):
-    game.president = game.innedPlayerList[game.presidentCounter%game.numOfPlayers]
+    game.president = game.innedPlayerlist[game.presidentCounter%game.numOfPlayers]
     await send_message(game, "The president is " + game.president.name)
     await send_message(game, "Nominate a player for Chancelor by using !nominate @playername")
 
@@ -70,7 +70,7 @@ async def nomination(game):
 async def vote(game):
     game.voteArray = {}
     votesCast = 0
-    for player in game.innedPlayerList:
+    for player in game.innedPlayerlist:
         game.voteArray[player] = "uncast"
     while not votesCast==game.numOfPlayers:
         votingMessage = await client.wait_for_message(channel=game)
@@ -82,6 +82,18 @@ async def vote(game):
             if game.voteArray[votingMessage.author] == "uncast":
                 votesCast = votesCast + 1
             game.voteArray[votingMessage.author] = False
+
+def countVote(game):
+    for player in innedPlayerlist:
+        yesVotes = 0
+        noVotes = 0
+        if game.voteArray[player] == True:
+            yesVotes = yesVotes + 1
+        elif game.voteArray[player] == False:
+            noVotes = noVotes + 1
+        else:
+            await send_message(game, "Someone voted something other than yes or no!")
+            #Should never happen. Just diagnostic
 
 async def startGame(message):
     game = message.channel
@@ -99,9 +111,14 @@ async def startGame(message):
     assignRoles(game)
     await sendMessages(game)
     game.presidentCounter = random.randrange(0,game.numOfPlayers)
+    main(game)
+
+async def main(game):
     while not game.over:
         await assignPres(game)
         await nomination(game)
         await vote(game)
+        game.voteOutcome = countVote(game)
+        
         game.presidentCounter += 1
     
