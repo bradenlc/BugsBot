@@ -100,6 +100,21 @@ def countVote(game):
     else:
         return False
 
+def genPolicies(game):
+    game.turnDeck = []
+    if len(game.policyDeck) > 3:
+        i = 0
+        while i < 3:
+            chosenPolicy = random.randrange(0,len(game.policyDeck))
+            game.turnDeck[i] = game.policyDeck.pop(chosenPolicy)
+            i = i + 1
+    elif len(game.policyDeck) == 3:
+        game.turnDeck = game.policyDeck
+        game.policyDeck = game.fullDeck
+    else:
+        game.policyDeck = game.fullDeck
+        genPolicies(game)
+
 async def presPolicies(game):
     pass
 
@@ -160,8 +175,9 @@ async def main(game):
         if game.over:
             break
         else:
-            #presPolicies(game)
-            #chancellorPolicies(game)
+            genPolicies(game)
+            #await presPolicies(game)
+            #await chancellorPolicies(game)
             #addPolicy(game, game.enactedPolicy)
             #await send_message(game, "President {} and Chancellor {} have enacted a {} policy".format(game.president.name, game.chancellor.name, game.enactedPolicy))
             #game.over = await checkIfWon(game)
