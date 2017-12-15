@@ -149,7 +149,12 @@ async def chancellorPolicies(game):
         game.enactedPolicy = game.turnDeck[1]
 
 def addPolicy(game, policy):
-    pass
+    if policy == "Facist":
+        game.facistPolicies = game.facistPolicies + 1
+    elif policy == "Liberal":
+        game.liberalPolicies = game.liberalPolicies + 1
+    else:
+        client.send_message(game, "The policies aren't given as a string argument!") #Should never happen, just diagnostic
 
 async def checkIfWon(game):
     pass
@@ -171,6 +176,8 @@ async def startGame(message):
     await sendMessages(game)
     game.presidentCounter = random.randrange(0,game.numOfPlayers)
     game.over = False
+    game.liberalPolicies = 0
+    game.facistPolicies = 0
     game.policyDeck = ["Facist","Facist","Facist","Facist","Facist","Facist","Facist","Facist","Facist","Facist","Facist","Liberal","Liberal","Liberal","Liberal","Liberal","Liberal"]
     game.fullDeck = ["Facist","Facist","Facist","Facist","Facist","Facist","Facist","Facist","Facist","Facist","Facist","Liberal","Liberal","Liberal","Liberal","Liberal","Liberal"]
     main(game)
