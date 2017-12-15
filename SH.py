@@ -121,7 +121,17 @@ async def presPolicies(game):
     await client.send_message(game.president, "2: {}".format(game.turnDeck[1]))
     await client.send_message(game.president, "3: {}".format(game.turnDeck[2]))
     await client.send_message(game.president, "Please select a policy to discard by saying '!d #'")
-    await client.wait_for_message(
+    def check(reply):
+        bool1 = (reply.content == "!d 1" or reply.content == "!d 2" or reply.content == "!d 3")
+        bool2 = reply.channel.is_private
+        return (bool1 and bool2)
+    reply = await client.wait_for_message(author=game.president, check=check)
+    if reply.content == "!d 1":
+        game.turnDeck.pop(0)
+    elif reply.content == "!d 2":
+        game.turnDeck.pop(1)
+    else:
+        game.turnDeck.pop(2)
 
 async def chancellorPolicies(game):
     pass
