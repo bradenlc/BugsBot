@@ -134,7 +134,19 @@ async def presPolicies(game):
         game.turnDeck.pop(2)
 
 async def chancellorPolicies(game):
-    pass
+    await client.send_message(game.chancellor, "You were passed the following 2 policies:")
+    await client.send_message(game.chancellor, "1: {}".format(game.turnDeck[0]))
+    await client.send_message(game.chancellor, "2: {}".format(game.turnDeck[1]))
+    await client.send_message(game.chancellor, "Please select a policy to enact by saying '!e #'")
+    def check(reply):
+        bool1 = (reply.content == "!e 1" or reply.content == "!e 2")
+        bool2 = reply.channel.is_private
+        return (bool1 and bool2)
+    reply = await client.wait_for_message(author=game.chancellor, check=check)
+    if reply.content = "!e 1":
+        game.enactedPolicy = game.turnDeck[0]
+    else:
+        game.enactedPolicy = game.turnDeck[1]
 
 def addPolicy(game, policy):
     pass
@@ -191,10 +203,10 @@ async def main(game):
             break
         else:
             genPolicies(game)
-            #await presPolicies(game)
-            #await chancellorPolicies(game)
+            await presPolicies(game)
+            await chancellorPolicies(game)
             #addPolicy(game, game.enactedPolicy)
-            #await send_message(game, "President {} and Chancellor {} have enacted a {} policy".format(game.president.name, game.chancellor.name, game.enactedPolicy))
+            await send_message(game, "President {} and Chancellor {} have enacted a {} policy".format(game.president.name, game.chancellor.name, game.enactedPolicy))
             #game.over = await checkIfWon(game)
             game.presidentCounter += 1
     
