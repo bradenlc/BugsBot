@@ -84,7 +84,7 @@ async def vote(game):
                 votesCast = votesCast + 1
             game.voteArray[votingMessage.author] = False
 
-def countVote(game):
+async def countVote(game):
     yesVotes = 0
     noVotes = 0
     for player in innedPlayerlist:
