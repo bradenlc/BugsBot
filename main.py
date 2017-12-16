@@ -75,7 +75,7 @@ async def on_message(message):
         elif message.content.startswith('!leave'):
             if SH.checkIfJoined(message):
                 message.channel.innedPlayerlist.remove(message.author)
-                await client.send_message(message.channel, 'You\'ve successfully removed yourself from the playerlist")
+                await client.send_message(message.channel, 'You\'ve successfully removed yourself from the playerlist')
             else:
                 await client.send_message(message.channel, 'You\'re not on the player list!')
                                           
@@ -130,6 +130,16 @@ async def on_message(message):
 
         elif message.content.startswith('!initRoles'):
             initRoles(message)
+
+        elif message.content.startswith('I am '):
+            tempArray = message.content.split(" ")
+            if len(tempArray)<4:
+                await client.send_message(message.channel, "Hi {}, I'm BugsBot!".format(tempArray[2]))
+
+        elif message.content.startswith('I\'m '):
+            tempArray = message.content.split(" ")
+            if len(tempArray)<3:
+                await client.send_message(message.channel, "Hi {}, I'm BugsBot!".format(tempArray[1]))
 
         else:
             await client.send_message(message.channel, 'That\'s not a valid command')
