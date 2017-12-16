@@ -148,7 +148,7 @@ async def chancellorPolicies(game):
     else:
         game.enactedPolicy = game.turnDeck[1]
 
-def addPolicy(game, policy):
+async def addPolicy(game, policy):
     if policy == "Facist":
         game.facistPolicies = game.facistPolicies + 1
     elif policy == "Liberal":
@@ -203,7 +203,7 @@ async def main(game):
                 failedElections = failedElections + 1
             else:
                 topPolicy = game.policyDeck[random.randrange(0,len(game.policyDeck))]
-                addPolicy(game, topPolicy)
+                await addPolicy(game, topPolicy)
                 await client.send_message(game, "Because 3 governments failed, a {} policy was enacted at random".format(topPolicy))
                 failedElections = 0
                 game.over = await checkIfWon(game)
@@ -213,7 +213,7 @@ async def main(game):
             genPolicies(game)
             await presPolicies(game)
             await chancellorPolicies(game)
-            addPolicy(game, game.enactedPolicy)
+            await addPolicy(game, game.enactedPolicy)
             await send_message(game, "President {} and Chancellor {} have enacted a {} policy".format(game.president.name, game.chancellor.name, game.enactedPolicy))
             #game.over = await checkIfWon(game)
             game.presidentCounter += 1
