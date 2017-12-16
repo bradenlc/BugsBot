@@ -143,7 +143,7 @@ async def chancellorPolicies(game):
         bool2 = reply.channel.is_private
         return (bool1 and bool2)
     reply = await client.wait_for_message(author=game.chancellor, check=check)
-    if reply.content = "!e 1":
+    if reply.content == "!e 1":
         game.enactedPolicy = game.turnDeck[0]
     else:
         game.enactedPolicy = game.turnDeck[1]
