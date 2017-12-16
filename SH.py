@@ -93,7 +93,7 @@ def countVote(game):
         elif game.voteArray[player] == False:
             noVotes = noVotes + 1
         else:
-            await send_message(game, "Someone voted something other than yes or no!")
+            await client.send_message(game, "Someone voted something other than yes or no!")
             #Should never happen. Just diagnostic
     if yesVotes > noVotes:
         return True
