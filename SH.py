@@ -11,7 +11,7 @@ async def trollAonar(game):
 def checkIfJoined(message):
     try:
         message.channel.innedPlayerlist[0]
-    except NameError:
+    except AttributeError:
         message.channel.innedPlayerlist = []
     for innedPlayer in message.channel.innedPlayerlist:
         if innedPlayer == message.author:
@@ -266,5 +266,4 @@ async def main(game):
     game.turnDeck = []
     game.policyDeck = []
     game.enactedPolicy = False
-    
     
