@@ -33,7 +33,7 @@ class SHInstance:
             if x.id == "263436294020005888" or x.id == 263436294020005888:
                 await client.send_message(x, "Use the following link to see your role: <https://goo.gl/9iFFHz>")
 
-    def checkIfJoined(message):
+    def checkIfJoined(self, message):
         for innedPlayer in self.innedPlayerlist:
             if innedPlayer == message.author:
                 return True
