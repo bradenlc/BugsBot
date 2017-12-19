@@ -23,7 +23,7 @@ def addFacist(game):
     if game.newFacist in game.facists:
         addFacist(game)
     else:
-        game.facists.append(newFacist)
+        game.facists.append(game.newFacist)
 
 def addHitler(game):
     game.hitler = game.innedPlayerlist[random.randrange(1,game.numOfPlayers)]
@@ -32,7 +32,7 @@ def addHitler(game):
 
 def assignRoles(game):
     game.facists = []
-    for x in range(0,numOfFacists):
+    for x in range(0,game.numOfFacists):
         addFacist(game)
     addHitler(game)
 
@@ -53,7 +53,7 @@ async def sendMessages(game):
 async def assignPres(game):
     game.president = game.innedPlayerlist[game.presidentCounter%game.numOfPlayers]
     await client.send_message(game, "The president is " + game.president.name)
-    await client.send_message(game, "Nominate a player for Chancelor by using !nominate @playername")
+    await client.send_message(game, "Nominate a player for Chancellor by using !nominate @playername")
 
 async def nomination(game):
     playerNominated = False
@@ -75,11 +75,11 @@ async def vote(game):
         game.voteArray[player] = "uncast"
     while not votesCast==game.numOfPlayers:
         votingMessage = await client.wait_for_message(channel=game)
-        if votingMessage.content == "!y" and (votingMessage.author in game.innedPlayerList):
+        if votingMessage.content == "!y" and (votingMessage.author in game.innedPlayerlist):
             if game.voteArray[votingMessage.author] == "uncast":
                 votesCast = votesCast + 1
             game.voteArray[votingMessage.author] = True
-        elif votingMessage.content == "!n" and (votingMessage.author in game.innedPlayerList):
+        elif votingMessage.content == "!n" and (votingMessage.author in game.innedPlayerlist):
             if game.voteArray[votingMessage.author] == "uncast":
                 votesCast = votesCast + 1
             game.voteArray[votingMessage.author] = False
@@ -151,13 +151,44 @@ async def chancellorPolicies(game):
 async def addPolicy(game, policy):
     if policy == "Facist":
         game.facistPolicies = game.facistPolicies + 1
+        if game.facistPolicies == 2:
+            #Allow investigate
+            pass
+        elif game.facistPolicies == 3:
+            #Allow peek
+            pass
+        elif game.facistPolicies == 4:
+            #Turn on vigilante kill
+            pass
+        elif game.facistPolicies == 5:
+            #Add veto
+            pass
+        
     elif policy == "Liberal":
         game.liberalPolicies = game.liberalPolicies + 1
+        
     else:
         client.send_message(game, "The policies aren't given as a string argument!") #Should never happen, just diagnostic
 
 async def checkIfWon(game):
-    pass
+    onlyFacists = True
+    for innedPlayer in game.innedPlayerlist:
+        if not innedPlayer in game.facists:
+            onlyFacists = False
+    if (game.facistPolicies == 6):
+        client.send_message(game, "The Facists enacted 6 policies! They win!")
+    elif(game.facistPolicies >= 2 and game.chancellor == game.hitler):
+        client.send_message(game, "The Facists elected Hitler as Chancellor! They win!")
+    elif onlyFacists:
+        client.send_message(game, "The only living players are Facists! They win!")
+    elif (game.liberalPolicies == 5):
+        client.send_message(game, "The Liberals have enacted 6 policies! They win!")
+    elif not (game.hitler in game.innedPlayerlist):
+        client.send_message(game, "The Liberals have killed Hitler! They win!")
+    else:
+        return False
+    return True
+        
 
 async def startGame(message):
     game = message.channel
@@ -193,7 +224,7 @@ async def main(game):
             game.voteOutcome = countVote(game)
             if game.voteOutcome:
                 game.chancellor = game.nominatedPlayer
-                #game.over = await checkIfWon(game)
+                game.over = await checkIfWon(game)
                 if game.over:
                     break
                 else:
@@ -215,6 +246,25 @@ async def main(game):
             await chancellorPolicies(game)
             await addPolicy(game, game.enactedPolicy)
             await send_message(game, "President {} and Chancellor {} have enacted a {} policy".format(game.president.name, game.chancellor.name, game.enactedPolicy))
-            #game.over = await checkIfWon(game)
+            game.over = await checkIfWon(game)
             game.presidentCounter += 1
+    game.over = False
+    game.presidentCounter = 0
+    game.facistPolicies = 0
+    game.liberalPolicies = 0
+    game.facists = []
+    game.voteOutcome = False
+    game.innedPlayerlist = []
+    game.nominatedPlayer = False
+    game.numOfPlayers = 0
+    game.newFacist = False
+    game.gameMode = 0
+    game.voteArray = {}
+    game.president = False
+    game.chancellor = False
+    game.hitler = False
+    game.turnDeck = []
+    game.policyDeck = []
+    game.enactedPolicy = False
+    
     
