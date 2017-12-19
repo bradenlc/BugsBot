@@ -4,6 +4,7 @@ import random
 import json
 import logging
 import SH
+import config
 
 logging.basicConfig(level=logging.INFO)
 
@@ -61,27 +62,30 @@ async def on_ready():
     print(client.user.id, end="")
     print("is up and running!")
     print('------')
+    config.SHInstances = {}
+    for x in client.get_all_channels():
+        config.SHInstances[x.id] = SH.SHInstance(x)
 
 @client.event
 async def on_message(message):
     if message.content.startswith('!'):
         if message.content.startswith('!join'):
-            if (not SH.checkIfJoined(message)):
-                message.channel.innedPlayerlist.append(message.author)
-                await client.send_message(message.channel, 'You\'ve successfully joined the player list, <@{}>. There are currently {} players waiting for the game to start.'.format(message.author.id,str(len(innedPlayerlist))))
+            if (not config.SHInstances[message.channel.id].checkIfJoined(message)):
+                config.SHInstances[message.channel.id].innedPlayerlist.append(message.author)
+                await client.send_message(message.channel, 'You\'ve successfully joined the player list, <@{}>. There are currently {} players waiting for the game to start.'.format(message.author.id,str(len(config.SHInstances[message.channel.id].innedPlayerlist))))
             else:
                 await client.send_message(message.channel, 'You\'re already on the player list!')
 
         elif message.content.startswith('!leave'):
-            if SH.checkIfJoined(message):
-                message.channel.innedPlayerlist.remove(message.author)
+            if config.SHInstances[message.channel.id].checkIfJoined(message):
+                config.SHInstances[message.channel.id].innedPlayerlist.remove(message.author)
                 await client.send_message(message.channel, 'You\'ve successfully removed yourself from the playerlist')
             else:
                 await client.send_message(message.channel, 'You\'re not on the player list!')
                                           
         elif message.content.startswith('!start'):
             if len(message.channel.playerList) > 4:
-                SH.startGame(message)
+                config.SHInstances[message.channel.id].startGame(message)
             else:
                 await client.send_message(message.channel, 'You need at least 5 players to start a game!')
             
@@ -143,4 +147,3 @@ async def on_message(message):
 
         else:
             await client.send_message(message.channel, 'That\'s not a valid command')
-            
