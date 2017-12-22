@@ -21,6 +21,7 @@ class SHInstance:
         self.enactedPolicy = False
         self.over = False
         self.vetoEnabled = False
+        self.unanimousVeto = False
         self.voteArray = {}
         self.turnDeck = []
         self.facists = []
@@ -176,10 +177,18 @@ class SHInstance:
         elif reply.content == "!e 2":
             self.enactedPolicy = self.turnDeck[1]
         else:
-            client.send_message(self.gameChannel, "The Chancellor has chosen to veto the agenda. <@{}>, do you agree?".format(self.president.id))
-            async def check2(reply):
-                
-            await client.wait_for_message(author=self.president, check=check2)
+            await client.send_message(self.gameChannel, "The Chancellor has chosen to veto the agenda. <@{}>, do you agree?".format(self.president.id))
+            bool properReply = False
+            while not properReply:
+                reply = await client.wait_for_message(author=self.president)
+                if reply in config.affirmatives:
+                    self.unanimousVeto = True
+                    properReply = True
+                elif reply in config.negatives:
+                    self.unanimousVeto = False
+                    properReply = True
+                else:
+                    await client.send_message(self.gameChannel, "That wasn't a recognized answer. Try again, please")
 
     async def presInvestigate(self):
         await client.send_message(self.president, "Who would you like to investigate? Your choices are:")
@@ -192,7 +201,7 @@ class SHInstance:
         properResponse = False
         bool1 = True
         while not (bool1 and properResponse):
-            reply = await client.wait_for_message(author=self.president, check=check)
+            reply = await client.wait_for_message(author=self.president)
             if not reply.channel.is_private:
                 bool1 = False
             if bool1:
@@ -321,7 +330,7 @@ async def main(game):
                     await client.send_message(game.gameChannel, "The vote succeeded! President {} and Chancellor {} are now choosing policies.".format(game.president.name, game.chancellor.name))
                 await game.presPolicies()
                 await game.chancellorPolicies()
-                if not unanimousVeto:
+                if not game.unanimousVeto:
                     playerElected = True
                 else:
                     await game.genPolicies()
