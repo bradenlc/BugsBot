@@ -181,7 +181,7 @@ class SHInstance:
             nextPlayer = "{}: {}".format(x+1, self.innedPlayerlist[x])
             await client.send_message(self.president, nextPlayer)
         await client.send_message(self.president, "Please respond with a number between 1 and {}".format(x+1))
-        def check(reply):
+        async def check(reply):
             try:
                 int(reply.content)
             except TypeError:
@@ -189,13 +189,44 @@ class SHInstance:
                 return False
             for y in range(len(self.innedPlayerlist)):
                 if y == int(reply.content) - 1:
-                    return True
+                    if not self.president == self.innedPlayerlist(y):
+                        return True
+                    else:
+                        await client.send_message(self.president, "I'm pretty sure you don't want to investigate yourself. Let's try that again")
+                        return False
+            await client.send_message(self.president, "The number you entered was out of range")
             return False
         reply = await client.wait_for_message(author=self.president, check=check)
         if (self.innedPlayerlist[int(reply) - 1]) in self.facists or (self.innedPlayerlist[int(reply) - 1] == self.hitler):
             client.send_message(self.president, "{} is a member of the Facist party!".format(self.innedPlayerlist[int(reply) - 1].name))
         else:
-            client.send_message(self.president, "{} is a member of the Liberal party.".format(self.innedPlayerlist[int(reply) - 1].name))            
+            client.send_message(self.president, "{} is a member of the Liberal party.".format(self.innedPlayerlist[int(reply) - 1].name))
+
+    async def presKill(self):
+        await client.send_message(self.president, "Who would you like to kill? Your choices are:")
+        for x in range(len(self.innedPlayerlist)):
+            nextPlayer = "{}: {}".format(x+1, self.innedPlayerlist[x])
+            await client.send_message(self.president, nextPlayer)
+        await client.send_message(self.president, "Please respond with a number between 1 and {}".format(x+1))
+        async def check(reply):
+            try:
+                int(reply.content)
+            except TypeError:
+                client.send_message(self.president, "That was not a valid integer! Try again")
+                return False
+            for y in range(len(self.innedPlayerlist)):
+                if y == int(reply.content) - 1:
+                    if not self.president == self.innedPlayerlist(y):
+                        return True
+                    else:
+                        await client.send_message(self.president, "I'm pretty sure you don't want to kill yourself. Let's try that again")
+                        await client.send_message(self.president, "If you are feeling suicidal, please call the suicide prevention hotline at 1-800-273-8255")
+            await client.send_message(self.president, "The number you entered was out of the range")
+            return False
+        reply = await client.wait_for_message(author=self.president, check=check)
+        killedPlayer = self.innedPlayerlist.pop(int(reply) - 1)
+        client.send_message(self.gameChannel, "{} has been killed!".format(killedPlayer.name))
+        self.over = self.checkIfWon()
 
     async def addPolicy(self, policy):
         if policy == "Facist":
@@ -205,8 +236,7 @@ class SHInstance:
             elif self.facistPolicies == 3:
                 self.peekEnabled = True
             elif self.facistPolicies == 4:
-                #Turn on vigilante kill
-                pass
+                self.presKill()
             elif self.facistPolicies == 5:
                 #Add veto
                 pass
