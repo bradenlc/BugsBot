@@ -98,20 +98,12 @@ async def on_message(message):
             await client.send_message(message.channel, 'Ok, <@' + message.author.id + '>, I\'ll remind you to ' + reminder + '.')
             
         elif message.content.startswith('!addquote'):
-            try:
-                len(quoteList)
-            except NameError:
-                with open("quoteList.pk1","r") as quoteFile:
-                    quoteList = json.load(quoteFile)
-            quoteList[len(quoteList)] = message.content[9:]
-            with open("quoteList.pk1","w") as quoteFile:
-                json.dump(quoteList, quoteFile)
+            #Add quote to server list
+            pass
             
         elif message.content.startswith('!quote'):
-            if not quoteList:
-                with open("Bugsbot/quoteList.pk1","r") as quoteFile:
-                    quoteList = json.load(quoteFile)
-            await client.send_message(message.channel, quoteList[random.randrange(0,len(quoteList))])
+            #Post quote from server
+            pass
             
         elif message.content.startswith('!bedtime'):
             if isAdmin(message):
