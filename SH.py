@@ -20,6 +20,7 @@ class SHInstance:
         self.hitler = False
         self.enactedPolicy = False
         self.over = False
+        self.vetoEnabled = False
         self.voteArray = {}
         self.turnDeck = []
         self.facists = []
@@ -166,14 +167,19 @@ class SHInstance:
         await client.send_message(self.chancellor, "2: {}".format(self.turnDeck[1]))
         await client.send_message(self.chancellor, "Please select a policy to enact by saying '!e #'")
         def check(reply):
-            bool1 = (reply.content == "!e 1" or reply.content == "!e 2")
+            bool1 = (reply.content == "!e 1" or reply.content == "!e 2" or (reply.content=="!veto" and self.vetoEnabled == True))
             bool2 = reply.channel.is_private
             return (bool1 and bool2)
         reply = await client.wait_for_message(author=self.chancellor, check=check)
         if reply.content == "!e 1":
             self.enactedPolicy = self.turnDeck[0]
-        else:
+        elif reply.content == "!e 2":
             self.enactedPolicy = self.turnDeck[1]
+        else:
+            client.send_message(self.gameChannel, "The Chancellor has chosen to veto the agenda. <@{}>, do you agree?".format(self.president.id))
+            async def check2(reply):
+                
+            await client.wait_for_message(author=self.president, check=check2)
 
     async def presInvestigate(self):
         await client.send_message(self.president, "Who would you like to investigate? Your choices are:")
@@ -181,22 +187,33 @@ class SHInstance:
             nextPlayer = "{}: {}".format(x+1, self.innedPlayerlist[x])
             await client.send_message(self.president, nextPlayer)
         await client.send_message(self.president, "Please respond with a number between 1 and {}".format(x+1))
-        async def check(reply):
-            try:
-                int(reply.content)
-            except TypeError:
-                client.send_message(self.president, "That was not a valid integer! Try again")
-                return False
-            for y in range(len(self.innedPlayerlist)):
-                if y == int(reply.content) - 1:
-                    if not self.president == self.innedPlayerlist(y):
-                        return True
-                    else:
-                        await client.send_message(self.president, "I'm pretty sure you don't want to investigate yourself. Let's try that again")
-                        return False
-            await client.send_message(self.president, "The number you entered was out of range")
-            return False
-        reply = await client.wait_for_message(author=self.president, check=check)
+
+
+        properResponse = False
+        bool1 = True
+        while not (bool1 and properResponse):
+            reply = await client.wait_for_message(author=self.president, check=check)
+            if not reply.channel.is_private:
+                bool1 = False
+            if bool1:
+                try:
+                    int(reply.content)
+                    for y in range(len(self.innedPlayerlist)):
+                        if y == int(reply.content) - 1:
+                            if not self.president == self.innedPlayerlist(y):
+                                properResponse = True
+                            else:
+                                await client.send_message(self.president, "I'm pretty sure you don't want to investigate yourself. Let's try that again")
+                                bool1 = False
+                    if not (properResponse):
+                        if bool1:
+                            await client.send_message(self.president, "The number you entered was out of range")
+                            bool1 = False
+                except TypeError:
+                    client.send_message(self.president, "That was not a valid integer! Try again")
+                    bool1 = False
+
+                    
         if (self.innedPlayerlist[int(reply) - 1]) in self.facists or (self.innedPlayerlist[int(reply) - 1] == self.hitler):
             client.send_message(self.president, "{} is a member of the Facist party!".format(self.innedPlayerlist[int(reply) - 1].name))
         else:
@@ -238,7 +255,7 @@ class SHInstance:
             elif self.facistPolicies == 4:
                 self.presKill()
             elif self.facistPolicies == 5:
-                #Add veto
+                self.vetoEnabled() = True
                 pass
             
         elif policy == "Liberal":
@@ -302,7 +319,13 @@ async def main(game):
                     break
                 else:
                     await client.send_message(game.gameChannel, "The vote succeeded! President {} and Chancellor {} are now choosing policies.".format(game.president.name, game.chancellor.name))
-                playerElected = True
+                await game.presPolicies()
+                await game.chancellorPolicies()
+                if not unanimousVeto:
+                    playerElected = True
+                else:
+                    await game.genPolicies()
+                    failedElections = failedElections + 1
             elif failedElections<2:
                 failedElections = failedElections + 1
                 game.presidentCounter = game.presidentCounter + 1
@@ -317,8 +340,6 @@ async def main(game):
         if game.over:
             break
         else:
-            await game.presPolicies()
-            await game.chancellorPolicies()
             await game.addPolicy(game.enactedPolicy)
             await send_message(game.gameChannel, "President {} and Chancellor {} have enacted a {} policy".format(game.president.name, game.chancellor.name, game.enactedPolicy))
             game.over = await game.checkIfWon()
