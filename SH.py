@@ -121,7 +121,7 @@ class SHInstance:
         else:
             return False
 
-    def genPolicies(self):
+    async def genPolicies(self):
         self.turnDeck = []
         if len(self.policyDeck) > 3:
             i = 0
@@ -135,6 +135,12 @@ class SHInstance:
         else:
             self.policyDeck = self.fullDeck
             genPolicies()
+        if self.peekEnabled:
+            self.peekEnabled = False
+            await client.send_message(self.president, "You peeked at the following 3 policies:")
+            await client.send_message(self.president, "1: {}".format(self.turnDeck[0]))
+            await client.send_message(self.president, "2: {}".format(self.turnDeck[1]))
+            await client.send_message(self.president, "3: {}".format(self.turnDeck[2]))
 
     async def presPolicies(self):
         await client.send_message(self.president, "You drew the following 3 policies:")
@@ -169,15 +175,35 @@ class SHInstance:
         else:
             self.enactedPolicy = self.turnDeck[1]
 
+    async def presInvestigate(self):
+        await client.send_message(self.president, "Who would you like to investigate? Your choices are:")
+        for x in range(len(self.innedPlayerlist)):
+            nextPlayer = "{}: {}".format(x+1, self.innedPlayerlist[x])
+            await client.send_message(self.president, nextPlayer)
+        await client.send_message(self.president, "Please respond with a number between 1 and {}".format(x+1))
+        def check(reply):
+            try:
+                int(reply.content)
+            except TypeError:
+                client.send_message(self.president, "That was not a valid integer! Try again")
+                return False
+            for y in range(len(self.innedPlayerlist)):
+                if y == int(reply.content) - 1:
+                    return True
+            return False
+        reply = await client.wait_for_message(author=self.president, check=check)
+        if (self.innedPlayerlist[int(reply) - 1]) in self.facists or (self.innedPlayerlist[int(reply) - 1] == self.hitler):
+            client.send_message(self.president, "{} is a member of the Facist party!".format(self.innedPlayerlist[int(reply) - 1].name))
+        else:
+            client.send_message(self.president, "{} is a member of the Liberal party.".format(self.innedPlayerlist[int(reply) - 1].name))            
+
     async def addPolicy(self, policy):
         if policy == "Facist":
             self.facistPolicies = self.facistPolicies + 1
             if self.facistPolicies == 2:
-                #Allow investigate
-                pass
+                presInvestigate()
             elif self.facistPolicies == 3:
-                #Allow peek
-                pass
+                self.peekEnabled = True
             elif self.facistPolicies == 4:
                 #Turn on vigilante kill
                 pass
@@ -231,6 +257,7 @@ async def startGame(message):
 
 async def main(game):
     while not game.over:
+        await game.genPolicies()
         failedElections = 0
         playerElected = False
         while not playerElected:
@@ -248,16 +275,18 @@ async def main(game):
                 playerElected = True
             elif failedElections<2:
                 failedElections = failedElections + 1
+                game.presidentCounter = game.presidentCounter + 1
             else:
-                topPolicy = game.policyDeck[random.randrange(0,len(game.policyDeck))]
+                topPolicy = game.turnDeck[0]
                 await game.addPolicy(topPolicy)
                 await client.send_message(game.gameChannel, "Because 3 governments failed, a {} policy was enacted at random".format(topPolicy))
                 failedElections = 0
+                await game.genPolicies()
+                game.presidentCounter = game.presidentCounter+1
                 game.over = await checkIfWon(game)
         if game.over:
             break
         else:
-            game.genPolicies()
             await game.presPolicies()
             await game.chancellorPolicies()
             await game.addPolicy(game.enactedPolicy)
