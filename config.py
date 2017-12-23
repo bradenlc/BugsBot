@@ -1,3 +1,32 @@
 SHInstances = {}
-affirmatives = ["Yes", "yes", "YES", "Y", "y", "Yep", "yep", "!y", "!Y", "!yes", "!yes"]
-negatives = ["No", "no", "NO", "N", "n", "nope", "Nope", "nah", "Nah", "!n", "!N", "!no", "!No"]
+
+affirmatives = ["!y",
+                "!yes",
+                "!ja",
+                "!yay"]
+
+negatives = ["!n",
+             "!no",
+             "!nein",
+             "!nay"]
+
+gameCommands = ["!nominate",
+                "!e",
+                "!d",
+                "!veto",
+                "!gamestatus",
+                "!playerlist",
+                "!votelist"]
+
+userCommands = ["!join",
+                "!leave",
+                "!start",
+                "!remindme",
+                "!addquote",
+                "!quote",
+                "!initroles",
+                "!colorme",
+                "!nameme"]
+
+adminCommands = ["!bedtime",
+                 "!remind"]
