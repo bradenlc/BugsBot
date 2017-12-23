@@ -182,7 +182,7 @@ async def executeGameCommands(message, command):
             if game.voteArray[x] == "Uncast":
                 messageString = messageString + "{} has not yet voted\n".format(x.name)
             else:
-                messageString = messageString + "{} has voted {}\n".format(x.name, game.voteArray[x])
+                messageString = messageString + "{} has voted `{}`\n".format(x.name, game.voteArray[x])
         await client.send_message(message.channel, messageString)
 
 @client.event

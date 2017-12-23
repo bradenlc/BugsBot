@@ -5,6 +5,7 @@ import logging
 import config
 
 class SHInstance:
+    #Initate all variables to their default state
     def __init__(self, gameChannel, client):
         self.client = client
         self.gameChannel = gameChannel
@@ -36,12 +37,14 @@ class SHInstance:
         self.fullDeck = ["fascist","fascist","fascist","fascist","fascist","fascist","fascist","fascist","fascist","fascist","fascist",
                          "Liberal","Liberal","Liberal","Liberal","Liberal","Liberal"]
 
+    #Chech if player who sent message is in innedPlayerlist
     def checkIfJoined(self, message):
         for innedPlayer in self.innedPlayerlist:
             if innedPlayer == message.author:
                 return True
         return False
 
+    #Add facist to facist list, accounting for duplicates 
     def addfascist(self):
         self.newfascist = self.innedPlayerlist[random.randrange(1,self.numOfPlayers)]
         if self.newfascist in self.fascists:
@@ -49,17 +52,20 @@ class SHInstance:
         else:
             self.fascists.append(self.newfascist)
 
+    #Select Hitler, making sure selected user isn't actually a facist
     def addHitler(self):
         self.hitler = self.innedPlayerlist[random.randrange(1,self.numOfPlayers)]
         if self.hitler in self.fascists:
             self.addHitler()
 
+    #Invoke previous 2 functions
     def assignRoles(self):
         self.fascists = []
         for x in range(0,self.numOffascists):
             self.addfascist()
         self.addHitler()
 
+    #Send role PMs to facists
     async def sendMessages(self):
         if self.gameMode == 1:
             print(self.hitler.name + " is Hitler")
@@ -78,12 +84,14 @@ class SHInstance:
             await self.client.send_message(self.fascists[2], ("You're a fascist. Your teammates are {} and {}. "
                                                               " Hitler is {}.").format(self.fascists[0].name, self.fascists[1].name, self.hitler.name))
             await self.client.send_message(self.hitler, "You're Hitler. Because you have more than one teammate, you don't get to know who they are")
-            
+
+    #Selects the president based on iterable integer        
     async def assignPres(self):
         self.president = self.innedPlayerlist[self.presidentCounter%self.numOfPlayers]
         await self.client.send_message(self.gameChannel, ("The president is <@{}>.\nPresident, please nominate a player for Chancellor "
                                                           "by using `!nominate @playername`").format(self.president.id))
 
+    #Waits for nomination
     async def nomination(self):
         playerNominated = False
         warningGiven = False
@@ -92,6 +100,7 @@ class SHInstance:
             try:
                 self.nominatedPlayer = nominationMessage.mentions[0]
                 if self.nominatedPlayer in self.innedPlayerlist:
+
                     if (self.nominatedPlayer != self.lastChancellor) and (self.nominatedPlayer != self.lastPresident):
                         playerNominated = True
                         await self.client.send_message(self.gameChannel, ("President {} has nominated {} for Chancellor. Please preface your vote with an '!'. Most "
@@ -108,6 +117,7 @@ class SHInstance:
                     await self.client.send_message(self.gameChannel, "Please mention the person you're nominating like this: `@user`")
                     warningGiven = True
 
+    #Collect votes from users
     async def vote(self):
         self.voteArray = {}
         votesCast = 0
@@ -119,17 +129,22 @@ class SHInstance:
                 if self.voteArray[votingMessage.author] == "Uncast":
                     votesCast = votesCast + 1
                     await self.client.send_message(self.gameChannel, "{} has cast a vote".format(votingMessage.author.name))
-                else:
+                elif self.voteArray[votingMessage.author] == "No":
                     await self.client.send_message(self.gameChannel, "{} has changed their vote".format(votingMessage.author.name))
+                else:
+                    await self.client.send_message(self.gameChannel, "You're already voting yes, {}".format(votingMessage.author.name))
                 self.voteArray[votingMessage.author] = "Yes"
             elif votingMessage.content.startswith("!") and (votingMessage.author in self.innedPlayerlist) and votingMessage.content in config.negatives:
                 if self.voteArray[votingMessage.author] == "Uncast":
                     votesCast = votesCast + 1
                     await self.client.send_message(self.gameChannel, "{} has cast a vote".format(votingMessage.author.name))
-                else:
+                elif self.voteArray[votingMessage.author] == "Yes":
                     await self.client.send_message(self.gameChannel, "{} has changed their vote".format(votingMessage.author.name))
+                else:
+                    await self.client.send_message(self.gameChannel, "You're already voting no, {}".format(votingMessage.author.name))
                 self.voteArray[votingMessage.author] = "No"
 
+    #Counts user votes, sets self.voteOutcome to bool depending on outcome
     async def countVote(self):
         yesVotes = 0
         noVotes = 0
