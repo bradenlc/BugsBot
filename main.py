@@ -74,7 +74,7 @@ async def on_ready():
     print('------')
     config.SHInstances = {}
     for x in client.get_all_channels():
-        config.SHInstances[x.id] = SH.SHInstance(x)
+        config.SHInstances[x.id] = SH.SHInstance(x, client)
 
 @client.event
 async def on_message(message):
