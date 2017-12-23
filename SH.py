@@ -5,17 +5,17 @@ import logging
 import config
 
 class SHInstance:
-    def __init__(self, gameChannel):
-        self.client = discord.Client()
+    def __init__(self, gameChannel, client):
+        self.client = client
         self.gameChannel = gameChannel
         self.presidentCounter = 0
-        self.facistsPolicies = 0
+        self.fascistsPolicies = 0
         self.liberalPolicies = 0
         self.numOfPlayers = 0
         self.gameMode = 0
         self.voteOutcome = False
         self.nominatedPlayer = False
-        self.newFacist = False
+        self.newfascist = False
         self.president = False
         self.chancellor = False
         self.hitler = False
@@ -25,12 +25,13 @@ class SHInstance:
         self.unanimousVeto = False
         self.lastChancellor = False
         self.lastPresident = False
+        self.peekEnabled = False
         self.voteArray = {}
         self.turnDeck = []
-        self.facists = []
+        self.fascists = []
         self.innedPlayerlist = []
-        self.policyDeck = ["Facist","Facist","Facist","Facist","Facist","Facist","Facist","Facist","Facist","Facist","Facist","Liberal","Liberal","Liberal","Liberal","Liberal","Liberal"]
-        self.fullDeck = ["Facist","Facist","Facist","Facist","Facist","Facist","Facist","Facist","Facist","Facist","Facist","Liberal","Liberal","Liberal","Liberal","Liberal","Liberal"]
+        self.policyDeck = ["fascist","fascist","fascist","fascist","fascist","fascist","fascist","fascist","fascist","fascist","fascist","Liberal","Liberal","Liberal","Liberal","Liberal","Liberal"]
+        self.fullDeck = ["fascist","fascist","fascist","fascist","fascist","fascist","fascist","fascist","fascist","fascist","fascist","Liberal","Liberal","Liberal","Liberal","Liberal","Liberal"]
 
     def checkIfJoined(self, message):
         for innedPlayer in self.innedPlayerlist:
@@ -38,39 +39,39 @@ class SHInstance:
                 return True
         return False
 
-    def addFacist(self):
-        self.newFacist = self.innedPlayerlist[random.randrange(1,self.numOfPlayers)]
-        if self.newFacist in self.facists:
-            self.addFacist()
+    def addfascist(self):
+        self.newfascist = self.innedPlayerlist[random.randrange(1,self.numOfPlayers)]
+        if self.newfascist in self.fascists:
+            self.addfascist()
         else:
-            self.facists.append(self.newFacist)
+            self.fascists.append(self.newfascist)
 
     def addHitler(self):
         self.hitler = self.innedPlayerlist[random.randrange(1,self.numOfPlayers)]
-        if self.hitler in self.facists:
+        if self.hitler in self.fascists:
             self.addHitler()
 
     def assignRoles(self):
-        self.facists = []
-        for x in range(0,self.numOfFacists):
-            self.addFacist()
+        self.fascists = []
+        for x in range(0,self.numOffascists):
+            self.addfascist()
         self.addHitler()
 
     async def sendMessages(self):
         if self.gameMode == 1:
             print(self.hitler.name + " is Hitler")
-            print(self.facists[0].name + " is facist")
-            await self.client.send_message(self.hitler, "You're Hitler. Your facist teammate is " + self.facists[0].name)
-            await self.client.send_message(self.facists[0], "You're a facist. Your job is to help Hitler, " + self.hitler.name)
+            print(self.fascists[0].name + " is fascist")
+            await self.client.send_message(self.hitler, "You're Hitler. Your fascist teammate is " + self.fascists[0].name)
+            await self.client.send_message(self.fascists[0], "You're a fascist. Your job is to help Hitler, " + self.hitler.name)
         elif self.gameMode == 2:
             await self.client.send_message(self.hitler, "You're Hitler. Because you have more than one teammate, you don't get to know who they are")
-            await self.client.send_message(self.facists[0], "You're a facist. Your teammate is " + self.facists[1].name + " and Hitler is " + self.hitler.name)
-            await self.client.send_message(self.facists[1], "You're a facist. Your teammate is " + self.facists[0].name + " and Hitler is " + self.hitler.name)
+            await self.client.send_message(self.fascists[0], "You're a fascist. Your teammate is " + self.fascists[1].name + " and Hitler is " + self.hitler.name)
+            await self.client.send_message(self.fascists[1], "You're a fascist. Your teammate is " + self.fascists[0].name + " and Hitler is " + self.hitler.name)
         elif self.gameMode == 3:
-            await self.client.send_message(self.facists[0], "You're a facist. Your teammates are " + self.facists[1].name + " and " + self.facists[2].name + ". Hitler is " + self.hitler.name)
-            await self.client.send_message(self.facists[1], "You're a facist. Your teammates are " + self.facists[2].name + " and " + self.facists[2].name + ". Hitler is " + self.hitler.name)
-            await self.client.send_message(self.facists[2], "You're a facist. Your teammates are " + self.facists[1].name + " and " + self.facists[0].name + ". Hitler is " + self.hitler.name)
-            await self.client.send_message(self.hitler, "You're Hitler. Your teammates are " + self.facists[0].name + ", " + self.facists[1].name + " and " + self.facists[2].name)
+            await self.client.send_message(self.fascists[0], "You're a fascist. Your teammates are " + self.fascists[1].name + " and " + self.fascists[2].name + ". Hitler is " + self.hitler.name)
+            await self.client.send_message(self.fascists[1], "You're a fascist. Your teammates are " + self.fascists[2].name + " and " + self.fascists[2].name + ". Hitler is " + self.hitler.name)
+            await self.client.send_message(self.fascists[2], "You're a fascist. Your teammates are " + self.fascists[1].name + " and " + self.fascists[0].name + ". Hitler is " + self.hitler.name)
+            await self.client.send_message(self.hitler, "You're Hitler. Your teammates are " + self.fascists[0].name + ", " + self.fascists[1].name + " and " + self.fascists[2].name)
             
     async def assignPres(self):
         self.president = self.innedPlayerlist[self.presidentCounter%self.numOfPlayers]
@@ -81,10 +82,9 @@ class SHInstance:
         playerNominated = False
         while not playerNominated:
             nominationMessage = await self.client.wait_for_message(author=self.president, channel = self.gameChannel)
-            if nominationMessage.content.startswith("!nominate "):
-                tempList = nominationMessage.content.split("<")
-                if tempList[1].startswith("@"):
-                    self.nominatedPlayer = get_user_info(tempList[1][1:])
+            try:
+                self.nominatedPlayer = nominationMessage.mentions[0]
+                if self.nominatedPlayer in self.innedPlayerlist:
                     if (self.nominatedPlayer != self.lastChancellor) and (self.nominatedPlayer != self.lastPresident):
                         playerNominated = True
                         await self.client.send_message(self.gameChannel, "President {} has nominated {} for Chancellor. Please vote with '!y' or '!n'".format(self.president.name, self.nominatedPlayer.name))
@@ -92,6 +92,8 @@ class SHInstance:
                         await self.client.sendMessage(self.gameChannel, "I'm sorry, but your nominee was term limited! Please nominate someone else.")
                 else:
                     await self.client.send_message(self.gameChannel, "You didn't enter a valid nomination message!")
+            except IndexError:
+                await self.client.send_message(self.gameChannel, "You didn't enter a valid nomination message!")
 
     async def vote(self):
         self.voteArray = {}
@@ -131,7 +133,7 @@ class SHInstance:
             i = 0
             while i < 3:
                 chosenPolicy = random.randrange(0,len(self.policyDeck))
-                self.turnDeck[i] = self.policyDeck.pop(chosenPolicy)
+                self.turnDeck.append(self.policyDeck.pop(chosenPolicy))
                 i = i + 1
         elif len(self.policyDeck) == 3:
             self.turnDeck = self.policyDeck
@@ -225,8 +227,8 @@ class SHInstance:
                     bool1 = False
 
                     
-        if (self.innedPlayerlist[int(reply) - 1]) in self.facists or (self.innedPlayerlist[int(reply) - 1] == self.hitler):
-            self.client.send_message(self.president, "{} is a member of the Facist party!".format(self.innedPlayerlist[int(reply) - 1].name))
+        if (self.innedPlayerlist[int(reply) - 1]) in self.fascists or (self.innedPlayerlist[int(reply) - 1] == self.hitler):
+            self.client.send_message(self.president, "{} is a member of the fascist party!".format(self.innedPlayerlist[int(reply) - 1].name))
         else:
             self.client.send_message(self.president, "{} is a member of the Liberal party.".format(self.innedPlayerlist[int(reply) - 1].name))
 
@@ -257,15 +259,15 @@ class SHInstance:
         self.over = self.checkIfWon()
 
     async def addPolicy(self, policy):
-        if policy == "Facist":
-            self.facistsPolicies = self.facistsPolicies + 1
-            if self.facistsPolicies == 2:
+        if policy == "fascist":
+            self.fascistsPolicies = self.fascistsPolicies + 1
+            if self.fascistsPolicies == 2:
                 self.presInvestigate()
-            elif self.facistsPolicies == 3:
+            elif self.fascistsPolicies == 3:
                 self.peekEnabled = True
-            elif self.facistsPolicies == 4:
+            elif self.fascistsPolicies == 4:
                 self.presKill()
-            elif self.facistsPolicies == 5:
+            elif self.fascistsPolicies == 5:
                 self.vetoEnabled = True
             
         elif policy == "Liberal":
@@ -275,16 +277,16 @@ class SHInstance:
             self.client.send_message(self.gameChannel, "The policies aren't given as a string argument!") #Should never happen, just diagnostic
 
     async def checkIfWon(self):
-        onlyFacists = True
+        onlyfascists = True
         for innedPlayer in self.innedPlayerlist:
-            if not innedPlayer in self.facists:
-                onlyFacists = False
-        if (self.facistsPolicies == 6):
-            self.client.send_message(self.gameChannel, "The Facists enacted 6 policies! They win!")
-        elif(self.facistsPolicies >= 2 and self.chancellor == self.hitler):
-            self.client.send_message(self.gameChannel, "The Facists elected Hitler as Chancellor! They win!")
-        elif onlyFacists:
-            self.client.send_message(self.gameChannel, "The only living players are Facists! They win!")
+            if not innedPlayer in self.fascists:
+                onlyfascists = False
+        if (self.fascistsPolicies == 6):
+            self.client.send_message(self.gameChannel, "The fascists enacted 6 policies! They win!")
+        elif(self.fascistsPolicies >= 2 and self.chancellor == self.hitler):
+            self.client.send_message(self.gameChannel, "The fascists elected Hitler as Chancellor! They win!")
+        elif onlyfascists:
+            self.client.send_message(self.gameChannel, "The only living players are fascists! They win!")
         elif (self.liberalPolicies == 5):
             self.client.send_message(self.gameChannel, "The Liberals have enacted 6 policies! They win!")
         elif not (self.hitler in self.innedPlayerlist):
@@ -293,28 +295,28 @@ class SHInstance:
             return False
         return True
 
-        """    async def trollAonar(self):
+    async def trollAonar(self):
         for x in self.innedPlayerlist:
             if x.id == "263436294020005888" or x.id == 263436294020005888:
-                await self.client.send_message(x, "Use the following link to see your role: <https://goo.gl/9iFFHz>") """
+                await self.client.send_message(x, "Use the following link to see your role: <https://goo.gl/9iFFHz>")
 
 async def startGame(message):
     game = config.SHInstances[message.channel.id]
     #await game.trollAonar()
     game.numOfPlayers = len(game.innedPlayerlist)
     if game.numOfPlayers > 8:
-        game.numOfFacists = 3
+        game.numOffascists = 3
         game.gameMode = 3
     elif game.numOfPlayers > 6:
-        game.numOfFacists = 2
+        game.numOffascists = 2
         game.gameMode = 2
     else:
-        game.numOfFacists = 1
+        game.numOffascists = 1
         game.gameMode = 1
     game.assignRoles()
     await game.sendMessages()
-    game.presidentCounter = random.randrange(0,self.numOfPlayers)
-    mainGame(game)
+    game.presidentCounter = random.randrange(0,game.numOfPlayers)
+    await mainGame(game)
 
 async def mainGame(game):
     while not game.over:
