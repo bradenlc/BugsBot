@@ -133,7 +133,7 @@ class SHInstance:
     async def countVote(self):
         yesVotes = 0
         noVotes = 0
-        for player in innedPlayerlist:
+        for player in self.innedPlayerlist:
             if self.voteArray[player] == "Yes":
                 yesVotes = yesVotes + 1
             elif self.voteArray[player] == "No":
@@ -141,7 +141,8 @@ class SHInstance:
         messageString = ""
         for x in self.voteArray:
             messageString = messageString + "{} voted {}\n".format(x.name, self.voteArray[x])
-        client.send_message(self.gameChannel, messageString)
+        self.client.send_message(self.gameChannel, messageString)
+        print("No votes: {}\nYes votes: {}".format(noVotes,yesVotes))
         if yesVotes > noVotes:
             return True
         else:
@@ -161,6 +162,7 @@ class SHInstance:
         else:
             self.policyDeck = self.fullDeck
             self.genPolicies()
+        print(self.turnDeck)
         if self.peekEnabled:
             self.peekEnabled = False
             await self.client.send_message(self.president, "You peeked at the following 3 policies:")
@@ -341,6 +343,7 @@ async def startGame(message):
 
 async def mainGame(game):
     while not game.over:
+        print("Test 832")
         await game.genPolicies()
         failedElections = 0
         playerElected = False
@@ -348,7 +351,7 @@ async def mainGame(game):
             await game.assignPres()
             await game.nomination()
             await game.vote()
-            game.voteOutcome = game.countVote()
+            game.voteOutcome = await game.countVote()
             if game.voteOutcome:
                 game.chancellor = game.nominatedPlayer
                 game.nominatedPlayer = False
@@ -371,13 +374,15 @@ async def mainGame(game):
                 failedElections = failedElections + 1
                 game.presidentCounter = game.presidentCounter + 1
             else:
-                topPolicy = game.turnDeck[0]
+                topPolicy = game.turnDeck.pop(0)
+                game.policyDeck.append(turnDeck[0])
+                game.policyDeck.append(turnDeck[1])
                 await game.addPolicy(topPolicy)
                 await game.client.send_message(game.gameChannel, "Because 3 governments failed, a {} policy was enacted at random".format(topPolicy))
                 failedElections = 0
                 await game.genPolicies()
                 game.presidentCounter = game.presidentCounter+1
-                game.over = await checkIfWon(game)
+                game.over = await game.checkIfWon()
         if game.over:
             break
         else:

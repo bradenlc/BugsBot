@@ -179,7 +179,7 @@ async def executeGameCommands(message, command):
                 
     elif command == "!votelist":
         for x in game.voteArray:
-            if voteArray[x] == "Uncast":
+            if game.voteArray[x] == "Uncast":
                 messageString = messageString + "{} has not yet voted\n".format(x.name)
             else:
                 messageString = messageString + "{} has voted {}\n".format(x.name, game.voteArray[x])
