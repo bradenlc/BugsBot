@@ -22,6 +22,8 @@ class SHInstance:
         self.over = False
         self.vetoEnabled = False
         self.unanimousVeto = False
+        self.lastChancellor = False
+        self.lastPresident = False
         self.voteArray = {}
         self.turnDeck = []
         self.facists = []
@@ -81,13 +83,16 @@ class SHInstance:
     async def nomination(self):
         playerNominated = False
         while not playerNominated:
-            nominationMessage = await client.wait_for_message(author=self.president, channel = game)
+            nominationMessage = await client.wait_for_message(author=self.president, channel = self.gameChannel)
             if nominationMessage.content.startswith("!nominate "):
                 tempList = nominationMessage.content.split("<")
                 if tempList[1].startswith("@"):
                     self.nominatedPlayer = get_user_info(tempList[1][1:])
-                    playerNominated = True
-                    await client.send_message(self.gameChannel, "President {} has nominated {} for Chancellor. Please vote with '!y' or '!n'".format(self.president.name, self.nominatedPlayer.name))
+                    if (self.nominatedPlayer != self.lastChancellor) and (self.nominatedPlayer != self.lastPresident):
+                        playerNominated = True
+                        await client.send_message(self.gameChannel, "President {} has nominated {} for Chancellor. Please vote with '!y' or '!n'".format(self.president.name, self.nominatedPlayer.name))
+                    else:
+                        await client.sendMessage(self.gameChannel, "I'm sorry, but your nominee was term limited! Please nominate someone else.")
                 else:
                     await client.send_message(self.gameChannel, "You didn't enter a valid nomination message!")
 
@@ -178,7 +183,7 @@ class SHInstance:
             self.enactedPolicy = self.turnDeck[1]
         else:
             await client.send_message(self.gameChannel, "The Chancellor has chosen to veto the agenda. <@{}>, do you agree?".format(self.president.id))
-            bool properReply = False
+            properReply = False
             while not properReply:
                 reply = await client.wait_for_message(author=self.president)
                 if reply in config.affirmatives:
@@ -264,8 +269,7 @@ class SHInstance:
             elif self.facistPolicies == 4:
                 self.presKill()
             elif self.facistPolicies == 5:
-                self.vetoEnabled() = True
-                pass
+                self.vetoEnabled = True
             
         elif policy == "Liberal":
             self.liberalPolicies = self.liberalPolicies + 1
@@ -328,6 +332,8 @@ async def main(game):
                     break
                 else:
                     await client.send_message(game.gameChannel, "The vote succeeded! President {} and Chancellor {} are now choosing policies.".format(game.president.name, game.chancellor.name))
+                game.lastChancellor = game.chancellor
+                game.lastPresident = game.president
                 await game.presPolicies()
                 await game.chancellorPolicies()
                 if not game.unanimousVeto:
