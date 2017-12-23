@@ -6,9 +6,10 @@ import config
 
 class SHInstance:
     def __init__(self, gameChannel):
+        self.client = discord.Client()
         self.gameChannel = gameChannel
         self.presidentCounter = 0
-        self.facistPolicies = 0
+        self.facistsPolicies = 0
         self.liberalPolicies = 0
         self.numOfPlayers = 0
         self.gameMode = 0
@@ -30,12 +31,6 @@ class SHInstance:
         self.innedPlayerlist = []
         self.policyDeck = ["Facist","Facist","Facist","Facist","Facist","Facist","Facist","Facist","Facist","Facist","Facist","Liberal","Liberal","Liberal","Liberal","Liberal","Liberal"]
         self.fullDeck = ["Facist","Facist","Facist","Facist","Facist","Facist","Facist","Facist","Facist","Facist","Facist","Liberal","Liberal","Liberal","Liberal","Liberal","Liberal"]
-    
-
-    async def trollAonar(self):
-        for x in self.innedPlayerlist:
-            if x.id == "263436294020005888" or x.id == 263436294020005888:
-                await client.send_message(x, "Use the following link to see your role: <https://goo.gl/9iFFHz>")
 
     def checkIfJoined(self, message):
         for innedPlayer in self.innedPlayerlist:
@@ -46,55 +41,57 @@ class SHInstance:
     def addFacist(self):
         self.newFacist = self.innedPlayerlist[random.randrange(1,self.numOfPlayers)]
         if self.newFacist in self.facists:
-            addFacist()
+            self.addFacist()
         else:
             self.facists.append(self.newFacist)
 
     def addHitler(self):
         self.hitler = self.innedPlayerlist[random.randrange(1,self.numOfPlayers)]
         if self.hitler in self.facists:
-            addHitler()
+            self.addHitler()
 
     def assignRoles(self):
         self.facists = []
         for x in range(0,self.numOfFacists):
-            addFacist()
-        addHitler()
+            self.addFacist()
+        self.addHitler()
 
     async def sendMessages(self):
         if self.gameMode == 1:
-            await client.send_message(self.hitler, "You're Hitler. Your facist teammate is " + self.facists[0].name)
-            await client.send_message(self.facist[0], "You're a facist. Your job is to help Hitler, " + self.hitler.name)
+            print(self.hitler.name + " is Hitler")
+            print(self.facists[0].name + " is facist")
+            await self.client.send_message(self.hitler, "You're Hitler. Your facist teammate is " + self.facists[0].name)
+            await self.client.send_message(self.facists[0], "You're a facist. Your job is to help Hitler, " + self.hitler.name)
         elif self.gameMode == 2:
-            await client.send_message(self.hitler, "You're Hitler. Because you have more than one teammate, you don't get to know who they are")
-            await client.send_message(self.facist[0], "You're a facist. Your teammate is " + self.facist[1].name + " and Hitler is " + self.hitler.name)
-            await client.send_message(self.facist[1], "You're a facist. Your teammate is " + self.facist[0].name + " and Hitler is " + self.hitler.name)
+            await self.client.send_message(self.hitler, "You're Hitler. Because you have more than one teammate, you don't get to know who they are")
+            await self.client.send_message(self.facists[0], "You're a facist. Your teammate is " + self.facists[1].name + " and Hitler is " + self.hitler.name)
+            await self.client.send_message(self.facists[1], "You're a facist. Your teammate is " + self.facists[0].name + " and Hitler is " + self.hitler.name)
         elif self.gameMode == 3:
-            await client.send_message(self.facist[0], "You're a facist. Your teammates are " + self.facist[1].name + " and " + self.facist[2].name + ". Hitler is " + self.hitler.name)
-            await client.send_message(self.facist[1], "You're a facist. Your teammates are " + self.facist[2].name + " and " + self.facist[2].name + ". Hitler is " + self.hitler.name)
-            await client.send_message(self.facist[2], "You're a facist. Your teammates are " + self.facist[1].name + " and " + self.facist[0].name + ". Hitler is " + self.hitler.name)
-            await client.send_message(self.hitler, "You're Hitler. Your teammates are " + self.facist[0].name + ", " + self.facist[1].name + " and " + self.facist[2].name)
+            await self.client.send_message(self.facists[0], "You're a facist. Your teammates are " + self.facists[1].name + " and " + self.facists[2].name + ". Hitler is " + self.hitler.name)
+            await self.client.send_message(self.facists[1], "You're a facist. Your teammates are " + self.facists[2].name + " and " + self.facists[2].name + ". Hitler is " + self.hitler.name)
+            await self.client.send_message(self.facists[2], "You're a facist. Your teammates are " + self.facists[1].name + " and " + self.facists[0].name + ". Hitler is " + self.hitler.name)
+            await self.client.send_message(self.hitler, "You're Hitler. Your teammates are " + self.facists[0].name + ", " + self.facists[1].name + " and " + self.facists[2].name)
             
     async def assignPres(self):
         self.president = self.innedPlayerlist[self.presidentCounter%self.numOfPlayers]
-        await client.send_message(self.gameChannel, "The president is " + self.president.name)
-        await client.send_message(self.gameChannel, "Nominate a player for Chancellor by using !nominate @playername")
+        await self.client.send_message(self.gameChannel, "The president is " + self.president.name)
+        await self.client.send_message(self.gameChannel, "Nominate a player for Chancellor by using !nominate @playername")
 
     async def nomination(self):
         playerNominated = False
         while not playerNominated:
-            nominationMessage = await client.wait_for_message(author=self.president, channel = self.gameChannel)
+            nominationMessage = await self.client.wait_for_message(author=self.president, channel = self.gameChannel)
             if nominationMessage.content.startswith("!nominate "):
                 tempList = nominationMessage.content.split("<")
                 if tempList[1].startswith("@"):
                     self.nominatedPlayer = get_user_info(tempList[1][1:])
                     if (self.nominatedPlayer != self.lastChancellor) and (self.nominatedPlayer != self.lastPresident):
                         playerNominated = True
-                        await client.send_message(self.gameChannel, "President {} has nominated {} for Chancellor. Please vote with '!y' or '!n'".format(self.president.name, self.nominatedPlayer.name))
+                        await self.client.send_message(self.gameChannel, "President {} has nominated {} for Chancellor. Please vote with '!y' or '!n'".format(self.president.name, self.nominatedPlayer.name))
                     else:
-                        await client.sendMessage(self.gameChannel, "I'm sorry, but your nominee was term limited! Please nominate someone else.")
+                        await self.client.sendMessage(self.gameChannel, "I'm sorry, but your nominee was term limited! Please nominate someone else.")
                 else:
-                    await client.send_message(self.gameChannel, "You didn't enter a valid nomination message!")
+                    await self.client.send_message(self.gameChannel, "You didn't enter a valid nomination message!")
 
     async def vote(self):
         self.voteArray = {}
@@ -102,7 +99,7 @@ class SHInstance:
         for player in self.innedPlayerlist:
             self.voteArray[player] = "uncast"
         while not votesCast==self.numOfPlayers:
-            votingMessage = await client.wait_for_message(channel=game)
+            votingMessage = await self.client.wait_for_message(channel=game)
             if votingMessage.content == "!y" and (votingMessage.author in self.innedPlayerlist):
                 if self.voteArray[votingMessage.author] == "uncast":
                     votesCast = votesCast + 1
@@ -121,7 +118,7 @@ class SHInstance:
             elif self.voteArray[player] == False:
                 noVotes = noVotes + 1
             else:
-                await client.send_message(self.gameChannel, "Someone voted something other than yes or no!")
+                await self.client.send_message(self.gameChannel, "Someone voted something other than yes or no!")
                 #Should never happen. Just diagnostic
         if yesVotes > noVotes:
             return True
@@ -141,25 +138,25 @@ class SHInstance:
             self.policyDeck = self.fullDeck
         else:
             self.policyDeck = self.fullDeck
-            genPolicies()
+            self.genPolicies()
         if self.peekEnabled:
             self.peekEnabled = False
-            await client.send_message(self.president, "You peeked at the following 3 policies:")
-            await client.send_message(self.president, "1: {}".format(self.turnDeck[0]))
-            await client.send_message(self.president, "2: {}".format(self.turnDeck[1]))
-            await client.send_message(self.president, "3: {}".format(self.turnDeck[2]))
+            await self.client.send_message(self.president, "You peeked at the following 3 policies:")
+            await self.client.send_message(self.president, "1: {}".format(self.turnDeck[0]))
+            await self.client.send_message(self.president, "2: {}".format(self.turnDeck[1]))
+            await self.client.send_message(self.president, "3: {}".format(self.turnDeck[2]))
 
     async def presPolicies(self):
-        await client.send_message(self.president, "You drew the following 3 policies:")
-        await client.send_message(self.president, "1: {}".format(self.turnDeck[0]))
-        await client.send_message(self.president, "2: {}".format(self.turnDeck[1]))
-        await client.send_message(self.president, "3: {}".format(self.turnDeck[2]))
-        await client.send_message(self.president, "Please select a policy to discard by saying '!d #'")
+        await self.client.send_message(self.president, "You drew the following 3 policies:")
+        await self.client.send_message(self.president, "1: {}".format(self.turnDeck[0]))
+        await self.client.send_message(self.president, "2: {}".format(self.turnDeck[1]))
+        await self.client.send_message(self.president, "3: {}".format(self.turnDeck[2]))
+        await self.client.send_message(self.president, "Please select a policy to discard by saying '!d #'")
         def check(reply):
             bool1 = (reply.content == "!d 1" or reply.content == "!d 2" or reply.content == "!d 3")
             bool2 = reply.channel.is_private
             return (bool1 and bool2)
-        reply = await client.wait_for_message(author=self.president, check=check)
+        reply = await self.client.wait_for_message(author=self.president, check=check)
         if reply.content == "!d 1":
             self.turnDeck.pop(0)
         elif reply.content == "!d 2":
@@ -168,24 +165,24 @@ class SHInstance:
             self.turnDeck.pop(2)
 
     async def chancellorPolicies(self):
-        await client.send_message(self.chancellor, "You were passed the following 2 policies:")
-        await client.send_message(self.chancellor, "1: {}".format(self.turnDeck[0]))
-        await client.send_message(self.chancellor, "2: {}".format(self.turnDeck[1]))
-        await client.send_message(self.chancellor, "Please select a policy to enact by saying '!e #'")
+        await self.client.send_message(self.chancellor, "You were passed the following 2 policies:")
+        await self.client.send_message(self.chancellor, "1: {}".format(self.turnDeck[0]))
+        await self.client.send_message(self.chancellor, "2: {}".format(self.turnDeck[1]))
+        await self.client.send_message(self.chancellor, "Please select a policy to enact by saying '!e #'")
         def check(reply):
             bool1 = (reply.content == "!e 1" or reply.content == "!e 2" or (reply.content=="!veto" and self.vetoEnabled == True))
             bool2 = reply.channel.is_private
             return (bool1 and bool2)
-        reply = await client.wait_for_message(author=self.chancellor, check=check)
+        reply = await self.client.wait_for_message(author=self.chancellor, check=check)
         if reply.content == "!e 1":
             self.enactedPolicy = self.turnDeck[0]
         elif reply.content == "!e 2":
             self.enactedPolicy = self.turnDeck[1]
         else:
-            await client.send_message(self.gameChannel, "The Chancellor has chosen to veto the agenda. <@{}>, do you agree?".format(self.president.id))
+            await self.client.send_message(self.gameChannel, "The Chancellor has chosen to veto the agenda. <@{}>, do you agree?".format(self.president.id))
             properReply = False
             while not properReply:
-                reply = await client.wait_for_message(author=self.president)
+                reply = await self.client.wait_for_message(author=self.president)
                 if reply in config.affirmatives:
                     self.unanimousVeto = True
                     properReply = True
@@ -193,20 +190,20 @@ class SHInstance:
                     self.unanimousVeto = False
                     properReply = True
                 else:
-                    await client.send_message(self.gameChannel, "That wasn't a recognized answer. Try again, please")
+                    await self.client.send_message(self.gameChannel, "That wasn't a recognized answer. Try again, please")
 
     async def presInvestigate(self):
-        await client.send_message(self.president, "Who would you like to investigate? Your choices are:")
+        await self.client.send_message(self.president, "Who would you like to investigate? Your choices are:")
         for x in range(len(self.innedPlayerlist)):
             nextPlayer = "{}: {}".format(x+1, self.innedPlayerlist[x])
-            await client.send_message(self.president, nextPlayer)
-        await client.send_message(self.president, "Please respond with a number between 1 and {}".format(x+1))
+            await self.client.send_message(self.president, nextPlayer)
+        await self.client.send_message(self.president, "Please respond with a number between 1 and {}".format(x+1))
 
 
         properResponse = False
         bool1 = True
         while not (bool1 and properResponse):
-            reply = await client.wait_for_message(author=self.president)
+            reply = await self.client.wait_for_message(author=self.president)
             if not reply.channel.is_private:
                 bool1 = False
             if bool1:
@@ -217,90 +214,94 @@ class SHInstance:
                             if not self.president == self.innedPlayerlist(y):
                                 properResponse = True
                             else:
-                                await client.send_message(self.president, "I'm pretty sure you don't want to investigate yourself. Let's try that again")
+                                await self.client.send_message(self.president, "I'm pretty sure you don't want to investigate yourself. Let's try that again")
                                 bool1 = False
                     if not (properResponse):
                         if bool1:
-                            await client.send_message(self.president, "The number you entered was out of range")
+                            await self.client.send_message(self.president, "The number you entered was out of range")
                             bool1 = False
                 except TypeError:
-                    client.send_message(self.president, "That was not a valid integer! Try again")
+                    self.client.send_message(self.president, "That was not a valid integer! Try again")
                     bool1 = False
 
                     
         if (self.innedPlayerlist[int(reply) - 1]) in self.facists or (self.innedPlayerlist[int(reply) - 1] == self.hitler):
-            client.send_message(self.president, "{} is a member of the Facist party!".format(self.innedPlayerlist[int(reply) - 1].name))
+            self.client.send_message(self.president, "{} is a member of the Facist party!".format(self.innedPlayerlist[int(reply) - 1].name))
         else:
-            client.send_message(self.president, "{} is a member of the Liberal party.".format(self.innedPlayerlist[int(reply) - 1].name))
+            self.client.send_message(self.president, "{} is a member of the Liberal party.".format(self.innedPlayerlist[int(reply) - 1].name))
 
     async def presKill(self):
-        await client.send_message(self.president, "Who would you like to kill? Your choices are:")
+        await self.client.send_message(self.president, "Who would you like to kill? Your choices are:")
         for x in range(len(self.innedPlayerlist)):
             nextPlayer = "{}: {}".format(x+1, self.innedPlayerlist[x])
-            await client.send_message(self.president, nextPlayer)
-        await client.send_message(self.president, "Please respond with a number between 1 and {}".format(x+1))
+            await self.client.send_message(self.president, nextPlayer)
+        await self.client.send_message(self.president, "Please respond with a number between 1 and {}".format(x+1))
         async def check(reply):
             try:
                 int(reply.content)
             except TypeError:
-                client.send_message(self.president, "That was not a valid integer! Try again")
+                self.client.send_message(self.president, "That was not a valid integer! Try again")
                 return False
             for y in range(len(self.innedPlayerlist)):
                 if y == int(reply.content) - 1:
                     if not self.president == self.innedPlayerlist(y):
                         return True
                     else:
-                        await client.send_message(self.president, "I'm pretty sure you don't want to kill yourself. Let's try that again")
-                        await client.send_message(self.president, "If you are feeling suicidal, please call the suicide prevention hotline at 1-800-273-8255")
-            await client.send_message(self.president, "The number you entered was out of the range")
+                        await self.client.send_message(self.president, "I'm pretty sure you don't want to kill yourself. Let's try that again")
+                        await self.client.send_message(self.president, "If you are feeling suicidal, please call the suicide prevention hotline at 1-800-273-8255")
+            await self.client.send_message(self.president, "The number you entered was out of the range")
             return False
-        reply = await client.wait_for_message(author=self.president, check=check)
+        reply = await self.client.wait_for_message(author=self.president, check=check)
         killedPlayer = self.innedPlayerlist.pop(int(reply) - 1)
-        client.send_message(self.gameChannel, "{} has been killed!".format(killedPlayer.name))
+        self.client.send_message(self.gameChannel, "{} has been killed!".format(killedPlayer.name))
         self.over = self.checkIfWon()
 
     async def addPolicy(self, policy):
         if policy == "Facist":
-            self.facistPolicies = self.facistPolicies + 1
-            if self.facistPolicies == 2:
-                presInvestigate()
-            elif self.facistPolicies == 3:
+            self.facistsPolicies = self.facistsPolicies + 1
+            if self.facistsPolicies == 2:
+                self.presInvestigate()
+            elif self.facistsPolicies == 3:
                 self.peekEnabled = True
-            elif self.facistPolicies == 4:
+            elif self.facistsPolicies == 4:
                 self.presKill()
-            elif self.facistPolicies == 5:
+            elif self.facistsPolicies == 5:
                 self.vetoEnabled = True
             
         elif policy == "Liberal":
             self.liberalPolicies = self.liberalPolicies + 1
             
         else:
-            client.send_message(self.gameChannel, "The policies aren't given as a string argument!") #Should never happen, just diagnostic
+            self.client.send_message(self.gameChannel, "The policies aren't given as a string argument!") #Should never happen, just diagnostic
 
     async def checkIfWon(self):
         onlyFacists = True
         for innedPlayer in self.innedPlayerlist:
             if not innedPlayer in self.facists:
                 onlyFacists = False
-        if (self.facistPolicies == 6):
-            client.send_message(self.gameChannel, "The Facists enacted 6 policies! They win!")
-        elif(self.facistPolicies >= 2 and self.chancellor == self.hitler):
-            client.send_message(self.gameChannel, "The Facists elected Hitler as Chancellor! They win!")
+        if (self.facistsPolicies == 6):
+            self.client.send_message(self.gameChannel, "The Facists enacted 6 policies! They win!")
+        elif(self.facistsPolicies >= 2 and self.chancellor == self.hitler):
+            self.client.send_message(self.gameChannel, "The Facists elected Hitler as Chancellor! They win!")
         elif onlyFacists:
-            client.send_message(self.gameChannel, "The only living players are Facists! They win!")
+            self.client.send_message(self.gameChannel, "The only living players are Facists! They win!")
         elif (self.liberalPolicies == 5):
-            client.send_message(self.gameChannel, "The Liberals have enacted 6 policies! They win!")
+            self.client.send_message(self.gameChannel, "The Liberals have enacted 6 policies! They win!")
         elif not (self.hitler in self.innedPlayerlist):
-            client.send_message(self.gameChannel, "The Liberals have killed Hitler! They win!")
+            self.client.send_message(self.gameChannel, "The Liberals have killed Hitler! They win!")
         else:
             return False
         return True
-            
+
+        """    async def trollAonar(self):
+        for x in self.innedPlayerlist:
+            if x.id == "263436294020005888" or x.id == 263436294020005888:
+                await self.client.send_message(x, "Use the following link to see your role: <https://goo.gl/9iFFHz>") """
 
 async def startGame(message):
     game = config.SHInstances[message.channel.id]
-    await trollAonar()
-    game.numOfPlayers = len(self.innedPlayerlist)
+    #await game.trollAonar()
+    game.numOfPlayers = len(game.innedPlayerlist)
     if game.numOfPlayers > 8:
         game.numOfFacists = 3
         game.gameMode = 3
@@ -313,9 +314,9 @@ async def startGame(message):
     game.assignRoles()
     await game.sendMessages()
     game.presidentCounter = random.randrange(0,self.numOfPlayers)
-    main(game)
+    mainGame(game)
 
-async def main(game):
+async def mainGame(game):
     while not game.over:
         await game.genPolicies()
         failedElections = 0
@@ -331,7 +332,7 @@ async def main(game):
                 if game.over:
                     break
                 else:
-                    await client.send_message(game.gameChannel, "The vote succeeded! President {} and Chancellor {} are now choosing policies.".format(game.president.name, game.chancellor.name))
+                    await game.client.send_message(game.gameChannel, "The vote succeeded! President {} and Chancellor {} are now choosing policies.".format(game.president.name, game.chancellor.name))
                 game.lastChancellor = game.chancellor
                 game.lastPresident = game.president
                 await game.presPolicies()
@@ -347,7 +348,7 @@ async def main(game):
             else:
                 topPolicy = game.turnDeck[0]
                 await game.addPolicy(topPolicy)
-                await client.send_message(game.gameChannel, "Because 3 governments failed, a {} policy was enacted at random".format(topPolicy))
+                await game.client.send_message(game.gameChannel, "Because 3 governments failed, a {} policy was enacted at random".format(topPolicy))
                 failedElections = 0
                 await game.genPolicies()
                 game.presidentCounter = game.presidentCounter+1
@@ -356,7 +357,7 @@ async def main(game):
             break
         else:
             await game.addPolicy(game.enactedPolicy)
-            await send_message(game.gameChannel, "President {} and Chancellor {} have enacted a {} policy".format(game.president.name, game.chancellor.name, game.enactedPolicy))
+            await game.client.send_message(game.gameChannel, "President {} and Chancellor {} have enacted a {} policy".format(game.president.name, game.chancellor.name, game.enactedPolicy))
             game.over = await game.checkIfWon()
             game.presidentCounter += 1
     config.SHInstances[game.gameChannel.id] = SHInstance(game.gameChannel)

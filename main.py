@@ -16,6 +16,7 @@ def initRoles(message):
     membersAndUR = {}
     simCount = 0
     duplicateMembers = []
+    noUniques = []
     for r in message.server.roles:
         roleDict[r] = 0
     for m in message.server.members:
@@ -33,11 +34,20 @@ def initRoles(message):
                     else:
                         duplicateMembers.append(m)
                         membersAndUR.pop(m)
+    for m in message.server.members:
+        try:
+            membersAndUR[m]
+        except KeyError:
+            if not m in duplicateMembers:
+                noUniques.append(m)
     print("Unique Roles: ")
     for x in membersAndUR:
         print(x.name + ' : ' + membersAndUR[x].name)
-    print("Duplicate Members: ")
+    print("Members with multiple unique roles: ")
     for x in duplicateMembers:
+        print(x.name)
+    print("Members without unique roles:")
+    for x in noUniques:
         print(x.name)
 
 async def isAdmin(message):
@@ -84,8 +94,8 @@ async def on_message(message):
                 await client.send_message(message.channel, 'You\'re not on the player list!')
                                           
         elif message.content.startswith('!start'):
-            if len(message.channel.playerList) > 4:
-                config.SHInstances[message.channel.id].startGame(message)
+            if len(config.SHInstances[message.channel.id].innedPlayerlist) > 4:
+                await SH.startGame(message)
             else:
                 await client.send_message(message.channel, 'You need at least 5 players to start a game!')
             
