@@ -127,15 +127,16 @@ async def on_message(message):
         elif message.content.startswith('!initRoles'):
             initRoles(message)
 
-        elif message.content.startswith('I am '):
-            tempArray = message.content.split(" ")
-            if len(tempArray)<4:
-                await client.send_message(message.channel, "Hi {}, I'm BugsBot!".format(tempArray[2]))
-
-        elif message.content.startswith('I\'m '):
-            tempArray = message.content.split(" ")
-            if len(tempArray)<3:
-                await client.send_message(message.channel, "Hi {}, I'm BugsBot!".format(tempArray[1]))
-
         else:
             await client.send_message(message.channel, 'That\'s not a valid command')
+    elif message.content.startswith('I am '):
+        print("test1")
+        tempArray = message.content.split(" ")
+        if len(tempArray)<4:
+            await client.send_message(message.channel, "Hi {}, I'm BugsBot!".format(tempArray[2]))
+
+    elif message.content.startswith('I\'m '):
+        tempArray = message.content.split(" ")
+        if len(tempArray)<3:
+            await client.send_message(message.channel, "Hi {}, I'm BugsBot!".format(tempArray[1]))
+client.run("Mzg2OTYzOTIyMDEzNjUwOTU1.DR6Aog.lL29j1S5y5nfSux0r7lVgvPry5Y")
