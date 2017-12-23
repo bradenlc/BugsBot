@@ -144,25 +144,35 @@ class SHInstance:
         self.client.send_message(self.gameChannel, messageString)
         print("No votes: {}\nYes votes: {}".format(noVotes,yesVotes))
         if yesVotes > noVotes:
-            return True
+            self.voteOutcome = True
         else:
-            return False
+            self.voteOutcome = False
 
     async def genPolicies(self):
         self.turnDeck = []
+
+        #If there are more than 3 policies, select from the deck at random
         if len(self.policyDeck) > 3:
             i = 0
             while i < 3:
                 chosenPolicy = random.randrange(0,len(self.policyDeck))
                 self.turnDeck.append(self.policyDeck.pop(chosenPolicy))
                 i = i + 1
+
+        #If there are 3 policies, use the entire deck
         elif len(self.policyDeck) == 3:
             self.turnDeck = self.policyDeck
             self.policyDeck = self.fullDeck
+
+        #If there are fewer than 3 policies, shuffle in discards and try drawing again
         else:
             self.policyDeck = self.fullDeck
             self.genPolicies()
+
+        #Debug text
         print(self.turnDeck)
+
+        #Show president top 3 if peek enabled
         if self.peekEnabled:
             self.peekEnabled = False
             await self.client.send_message(self.president, "You peeked at the following 3 policies:")
@@ -323,9 +333,38 @@ class SHInstance:
             if x.id == "263436294020005888" or x.id == 263436294020005888:
                 await self.client.send_message(x, "Use the following link to see your role: <https://goo.gl/9iFFHz>")
 
+
+async def votePasses(game):
+    game.chancellor = game.nominatedPlayer
+    game.nominatedPlayer = False
+    game.over = await game.checkIfWon()
+    if not game.over:
+        await game.client.send_message(game.gameChannel, ("The vote succeeded! President {} and Chancellor {} "
+                                                          "are now choosing policies.").format(game.president.name, game.chancellor.name))
+        game.lastChancellor = False
+        game.lastPresident = False
+        await game.presPolicies()
+        await game.chancellorPolicies()
+        if not game.unanimousVeto:
+            playerElected = True
+        else:
+            await game.genPolicies()
+            failedElections = failedElections + 1
+
+async def threeFailures(game):
+    topPolicy = game.turnDeck.pop(0)
+    game.policyDeck.append(game.turnDeck[0])
+    game.policyDeck.append(game.turnDeck[1])
+    await game.addPolicy(topPolicy)
+    await game.client.send_message(game.gameChannel, "Because 3 governments failed, a {} policy was enacted at random".format(topPolicy))
+    failedElections = 0
+    await game.genPolicies()
+    game.presidentCounter = game.presidentCounter+1
+    game.over = await game.checkIfWon()
+
 async def startGame(message):
     game = config.SHInstances[message.channel.id]
-    #await game.trollAonar()
+    await game.trollAonar()
     game.numOfPlayers = len(game.innedPlayerlist)
     if game.numOfPlayers > 8:
         game.numOffascists = 3
@@ -343,57 +382,52 @@ async def startGame(message):
 
 async def mainGame(game):
     while not game.over:
-        print("Test 832")
+        print("Test")
+
+        #create game.turnDeck
         await game.genPolicies()
+
+        #Start nomination cycle
         failedElections = 0
         playerElected = False
         while not playerElected:
-            await game.assignPres()
-            await game.nomination()
-            await game.vote()
-            game.voteOutcome = await game.countVote()
+            await game.assignPres() #Choose president based on iterated value 
+            await game.nomination() #Nominate president
+            await game.vote()       #Get players' votes
+            await game.countVote()  #Count votes, game.voteOutcome is the result
+
+            #Go through all policy selections
             if game.voteOutcome:
-                game.chancellor = game.nominatedPlayer
-                game.nominatedPlayer = False
-                game.over = await game.checkIfWon()
-                if game.over:
-                    break
-                else:
-                    await game.client.send_message(game.gameChannel, ("The vote succeeded! President {} and Chancellor {} "
-                                                                      "are now choosing policies.").format(game.president.name, game.chancellor.name))
-                game.lastChancellor = False
-                game.lastPresident = False
-                await game.presPolicies()
-                await game.chancellorPolicies()
-                if not game.unanimousVeto:
-                    playerElected = True
-                else:
-                    await game.genPolicies()
-                    failedElections = failedElections + 1
+                await votePasses(game)
+
+            #Switch to next president, repeat
             elif failedElections<2:
                 failedElections = failedElections + 1
-                game.presidentCounter = game.presidentCounter + 1
+                game.presidentCounter = game.presidentCounter + 1 #Iterate to next president
+
+            #Draw from top, reset failedElections counter, iterate to next president
             else:
-                topPolicy = game.turnDeck.pop(0)
-                game.policyDeck.append(turnDeck[0])
-                game.policyDeck.append(turnDeck[1])
-                await game.addPolicy(topPolicy)
-                await game.client.send_message(game.gameChannel, "Because 3 governments failed, a {} policy was enacted at random".format(topPolicy))
-                failedElections = 0
-                await game.genPolicies()
-                game.presidentCounter = game.presidentCounter+1
-                game.over = await game.checkIfWon()
+                await threeFailures(game)
+
+        #Escape if game has ended      
         if game.over:
             break
-        else:
-            await game.addPolicy(game.enactedPolicy)
-            await game.client.send_message(game.gameChannel, "President {} and Chancellor {} have enacted a {} policy".format(game.president.name,
-                                                                                                                              game.chancellor.name,
-                                                                                                                              game.enactedPolicy))
-            game.lastChancellor = game.chancellor
-            game.lastPresident = game.president
-            game.chancellor = False
-            game.over = await game.checkIfWon()
-            game.presidentCounter += 1
+
+        #Enact policies
+        await game.addPolicy(game.enactedPolicy)
+        await game.client.send_message(game.gameChannel, "President {} and Chancellor {} have enacted a {} policy".format(game.president.name, game.chancellor.name,
+                                                                                                                          game.enactedPolicy))
+        #Set term limits and update roles
+        game.lastChancellor = game.chancellor
+        game.lastPresident = game.president
+        game.chancellor = False
+
+        #Check if enacted policy caused victory
+        game.over = await game.checkIfWon()
+
+        #Iterate to next president 
+        game.presidentCounter += 1
+
+    #Reset game once over    
     config.SHInstances[game.gameChannel.id] = SHInstance(game.gameChannel, game.client)
     
