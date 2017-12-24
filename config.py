@@ -3,7 +3,8 @@ SHInstances = {}
 affirmatives = ["!y",
                 "!yes",
                 "!ja",
-                "!yay"]
+                "!yay",
+                "!mhm"]
 
 negatives = ["!n",
              "!no",
