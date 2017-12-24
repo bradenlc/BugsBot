@@ -152,38 +152,47 @@ async def executeAdminCommands(message, command):
         remind(reminder,whoToRemind)
 
 async def executeGameCommands(message, command):
-    game = config.SHInstances[message.channel.id]
-    messageString = ""
-    if command == "!gamestatus":
-        pass
-    
-    elif command == "!playerlist":
-        messageString = "The current living players are: "
-        presidentString = "{} is President.\n".format(game.president.name)
-        chancellorString = ""
-        nominatedString = ""
-        termLimit1 = ""
-        termLimit2 = ""
-        for x in game.innedPlayerlist:
-            messageString = messageString + "{}, ".format(x.name)
-            if x == game.nominatedPlayer:
-                nominatedString = "{} is currently nominated for Chancellor.\n".format(x.name)
-            if x == game.chancellor:
-                chancellorString = "{} is currently Chancellor.\n".format(x.name)
-            if x == game.lastChancellor:
-                termLimit1 = "{} was just Chancellor, so they can't be nominated.\n".format(x.name)
-            if x == game.lastPresident:
-                termLimit2 = "{} was just President, so they can't be nominated.\n".format(x.name)
-        messageString = messageString + presidentString + chancellorString + nominatedString + termLimit1 + termLimit2
-        await client.send_message(message.channel, messageString)
-                
-    elif command == "!votelist":
-        for x in game.voteArray:
-            if game.voteArray[x] == "Uncast":
-                messageString = messageString + "{} has not yet voted\n".format(x.name)
-            else:
-                messageString = messageString + "{} has voted `{}`\n".format(x.name, game.voteArray[x])
-        await client.send_message(message.channel, messageString)
+    try:
+        game = config.SHInstances[message.channel.id]
+        messageString = ""
+        if command == "!gamestatus":
+            awaut client.send_message(message.channel, "There are currently {} Fascist policies and {} Liberal policies enacted".format(game.facistPolicies,
+                                                                                                                                        game.liberalPolicies))
+                                      
+        elif command == "!playerlist":
+            messageString = "The current living players are: "
+            presidentString = ""
+            chancellorString = ""
+            nominatedString = ""
+            termLimit1 = ""
+            termLimit2 = ""
+            for x in game.innedPlayerlist:
+                messageString = messageString + "{}, ".format(x.name)
+                if x == game.president:
+                    presidentString = "{} is President.\n".format(game.president.name)
+                if x == game.nominatedPlayer:
+                    nominatedString = "{} is currently nominated for Chancellor.\n".format(x.name)
+                if x == game.chancellor:
+                    chancellorString = "{} is currently Chancellor.\n".format(x.name)
+                if x == game.lastChancellor:
+                    termLimit1 = "{} was just Chancellor, so they can't be nominated.\n".format(x.name)
+                if x == game.lastPresident:
+                    termLimit2 = "{} was just President, so they can't be nominated.\n".format(x.name)
+            messageString = messageString + presidentString + chancellorString + nominatedString + termLimit1 + termLimit2
+            await client.send_message(message.channel, messageString)
+                    
+        elif command == "!votelist":
+            for x in game.voteArray:
+                if game.voteArray[x] == "Uncast":
+                    messageString = messageString + "{} has not yet voted\n".format(x.name)
+                else:
+                    messageString = messageString + "{} has voted `{}`\n".format(x.name, game.voteArray[x])
+            await client.send_message(message.channel, messageString)
+
+    except KeyError:
+        game = False
+        if command in ["!gamestatus", "!playerlist", "!votelist"]:
+            client.send_message(message.channel, "That command doesn't work in this channel!")
 
 @client.event
 async def on_message(message):
@@ -199,10 +208,7 @@ async def on_message(message):
                 await executeAdminCommands(message, command)
                 
         elif command in config.gameCommands:
-            if config.SHInstances[message.channel.id].gameStarted:
-                await executeGameCommands(message, command)
-            else:
-                await client.send_message(message.channel, "No game is running in this channel!")
+            await executeGameCommands(message, command)
 
         elif command in config.affirmatives or command in config.negatives:
             pass
