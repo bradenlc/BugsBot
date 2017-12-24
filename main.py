@@ -189,6 +189,37 @@ async def executeGameCommands(message, command):
                     messageString = messageString + "{} has voted `{}`\n".format(x.name, game.voteArray[x])
             await client.send_message(message.channel, messageString)
 
+        elif command == "!skip":
+            if game.skipArray == {}:
+                await client.send_message(message.channel, ("{} has begun a vote to end the election early. This requires a majority of the current players to pass. "
+                                                            "Please say `!skip` if you'd like to be counted.").format(message.author))
+                game.skipArray[message.author] = True
+            while not game.skipThreshold:
+                def checkSkip(reply):
+                    if reply.content.startswith("!skip") and reply.author in game.innedPlayerlist:
+                        return True
+                reply = await client.wait_for_message(channel = game.gameChannel, check = checkSkip)
+                game.skipArray[message.author] = True
+                if len(game.skipArray) > game.numOfPlayers/2:
+                    game.skipThreshold = True
+
+        elif command == "!endgame":
+            if game.endArray == {}:
+                await client.send_message(message.channel, ("{} has begun a vote to end the game early. This requires a majority of the current players to pass. "
+                                                            "Please say `!endgame` if you'd like to be counted.").format(message.author))
+                game.endArray[message.author] = True
+            while not game.over:
+                def checkEnd(reply):
+                    if reply.content.startswith("!endgame") and reply.author in game.innedPlayerlist:
+                        return True
+                reply = await client.wait_for_message(channel = game.gameChannel, check = checkEnd)
+                game.endArray[message.author] = True
+                if len(game.endArray) > game.numOfPlayers/2:
+                    game.over = True
+
+        elif command == "!pinchhit":
+            pass
+
     except KeyError:
         game = False
         if command in ["!gamestatus", "!playerlist", "!votelist"]:

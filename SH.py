@@ -14,6 +14,7 @@ class SHInstance:
         self.liberalPolicies = 0
         self.numOfPlayers = 0
         self.gameMode = 0
+        self.skipThreshold = False
         self.playerElected = False
         self.gameStarted = False
         self.voteOutcome = False
@@ -30,6 +31,8 @@ class SHInstance:
         self.lastPresident = False
         self.peekEnabled = False
         self.voteArray = {}
+        self.skipArray = {}
+        self.endArray = {}
         self.turnDeck = []
         self.fascists = []
         self.innedPlayerlist = []
@@ -123,6 +126,8 @@ class SHInstance:
         for player in self.innedPlayerlist:
             self.voteArray[player] = "Uncast"
         while not votesCast==self.numOfPlayers:
+            if self.skipThreshold:
+                break
             votingMessage = await self.client.wait_for_message()
             messageStart = (votingMessage.split(" "))[0].lower() #Potential Error source
             if (votingMessage.author in self.innedPlayerlist) and messageStart in config.affirmatives:
@@ -143,6 +148,8 @@ class SHInstance:
                 else:
                     await self.client.send_message(self.gameChannel, "You're already voting no, {}".format(votingMessage.author.name))
                 self.voteArray[votingMessage.author] = "No"
+        self.skipArray = {}
+        self.skipThreshold = False
 
     #Counts user votes, sets self.voteOutcome to bool depending on outcome
     async def countVote(self):
