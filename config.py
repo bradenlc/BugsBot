@@ -12,12 +12,13 @@ negatives = ["!n",
              "!nay"]
 
 gameCommands = ["!nominate",
-                "!e",
-                "!d",
                 "!veto",
                 "!gamestatus",
                 "!playerlist",
-                "!votelist"]
+                "!votelist",
+                "!skip",
+                "!endgame",
+                "!pinchhit"]
 
 userCommands = ["!join",
                 "!leave",
