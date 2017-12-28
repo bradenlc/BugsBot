@@ -1,6 +1,6 @@
 import discord
-import random
 import asyncio
+import random
 import logging
 import config
 
@@ -86,6 +86,9 @@ class SHInstance:
             await self.client.send_message(self.fascists[2], ("You're a Fascist. Your teammates are {} and {}. "
                                                               " Hitler is {}.").format(self.fascists[0].name, self.fascists[1].name, self.hitler.name))
             await self.client.send_message(self.hitler, "You're Hitler. Because you have more than one teammate, you don't get to know who they are")
+        for x in self.innedPlayerlist:
+            if not (x in self.fascists or x == self.hitler):
+                await client.send_message(x, "You're a liberal!")
 
     #Selects the president based on iterable integer        
     async def assignPres(self):
@@ -95,6 +98,8 @@ class SHInstance:
 
     #Waits for nomination
     async def nomination(self):
+        if self.over:
+            return True
         playerNominated = False
         warningGiven = False
         while not playerNominated:
@@ -121,15 +126,29 @@ class SHInstance:
 
     #Collect votes from users
     async def vote(self):
+        if self.over:
+            return True
         self.voteArray = {}
         votesCast = 0
         for player in self.innedPlayerlist:
             self.voteArray[player] = "Uncast"
-        while not votesCast==self.numOfPlayers:
-            if self.skipThreshold:
-                break
+        while not votesCast==self.numOfPlayers or self.skipThreshold:
             votingMessage = await self.client.wait_for_message()
-            messageStart = (votingMessage.split(" "))[0].lower() #Potential Error source
+            messageStart = (votingMessage.content.split(" "))[0].lower()
+
+            #if skipping
+            if (votingMessage.author in self.innedPlayerlist) and messageStart == "!skip":
+                if self.skipArray == {}:
+                    await client.send_message(self.gameChannel, ("{} has begun a vote to end the election early. This requires a majority of the current players to"
+                                                                " pass. Please say `!skip` if you'd like to be counted.").format(message.author))
+                    self.skipArray[message.author] = True
+                else:
+                    self.skipArray[message.author] = True
+                    await client.send_message(self.gameChannel, "{} has requested to skip".format(votingMessage.author))
+                    if len(self.skipArray) > self.numOfPlayers/2:
+                        self.skipThreshold = True
+
+            #if voting yes
             if (votingMessage.author in self.innedPlayerlist) and messageStart in config.affirmatives:
                 if self.voteArray[votingMessage.author] == "Uncast":
                     votesCast = votesCast + 1
@@ -139,6 +158,8 @@ class SHInstance:
                 else:
                     await self.client.send_message(self.gameChannel, "You're already voting yes, {}".format(votingMessage.author.name))
                 self.voteArray[votingMessage.author] = "Yes"
+
+            #if voting no
             elif(votingMessage.author in self.innedPlayerlist) and messageStart in config.negatives:
                 if self.voteArray[votingMessage.author] == "Uncast":
                     votesCast = votesCast + 1
@@ -184,7 +205,7 @@ class SHInstance:
         #If there are 3 policies, use the entire deck
         elif len(self.policyDeck) == 3:
             print("3")
-            self.turnDeck = self.policyDeck
+            self.turnDeck = list(self.policyDeck)
             self.policyDeck = self.fullDeck
 
         #If there are fewer than 3 policies, shuffle in discards and try drawing again
@@ -204,10 +225,14 @@ class SHInstance:
         await self.client.send_message(self.president, ("You drew the following 3 policies:\n1: {}\n2: {}\n3: {}\nPlease select a policy to discard by saying "
                                                         "the number of the policy you'd like to remove").format(self.turnDeck[0],self.turnDeck[1],self.turnDeck[2]))
         def check(reply):
+            if self.over:
+                return True
             bool1 = (reply.content[0] == "1" or reply.content[0] == "2" or reply.content[0] == "3")
-            bool2 = reply.channel.is_private
+            bool2 = reply.channel.is_private and reply.author==self.president
             return (bool1 and bool2)
-        reply = await self.client.wait_for_message(author=self.president, check=check)
+        reply = await self.client.wait_for_message(check=check)
+        if self.over:
+            return True
         await self.client.send_message(self.president, "You've passed the other 2 cards to the chancellor.")     
         if reply.content[0] == "1":
             self.turnDeck.pop(0)
@@ -220,15 +245,21 @@ class SHInstance:
         await self.client.send_message(self.chancellor, ("You were passed the following 2 policies:\n1: {}\n2: {}\nPlease choose a policy to enact by saying "
                                                          "the number of the policy you'd like to select").format(self.turnDeck[0],self.turnDeck[1]))
         def check(reply):
+            if self.over:
+                return True
             bool1 = (reply.content[0] == "1" or reply.content[0] == "2" or (reply.content=="!veto" and self.vetoEnabled == True))
-            bool2 = reply.channel.is_private
+            bool2 = reply.channel.is_private and reply.author==self.chancellor
             return (bool1 and bool2)
-        reply = await self.client.wait_for_message(author=self.chancellor, check=check)
+        reply = await self.client.wait_for_message(check=check)
         print("Proper reply found")
+        if self.over:
+            return True
         if reply.content[0] == "1":
             self.enactedPolicy = self.turnDeck[0]
+            await self.client.send_message(self.chancellor, "You've enacted a {} policy".format(self.enactedPolicy))
         elif reply.content[0] == "2":
             self.enactedPolicy = self.turnDeck[1]
+            await self.client.send_message(self.chancellor, "You've enacted a {} policy".format(self.enactedPolicy))
         else:
             await self.client.send_message(self.gameChannel, "The Chancellor has chosen to veto the agenda. <@{}>, do you agree?".format(self.president.id))
             properReply = False
@@ -252,11 +283,17 @@ class SHInstance:
         properResponse = False
         bool1 = True
         while not (bool1 and properResponse):
-            reply = await self.client.wait_for_message(author=self.president)
-            print("Response Recorded - Investigate")
+            reply = await self.client.wait_for_message()
+            if self.over:
+                return True
+            if not reply.author==self.president:
+                bool1 = False
+            else:
+                print("Response Recorded - Investigate")
             if not reply.channel.is_private:
                 bool1 = False
-            print("Channel Recognized as private - Investigate")
+            else:
+                print("Channel Recognized as private - Investigate")
             if bool1:
                 try:
                     int(reply.content[0])
@@ -292,9 +329,16 @@ class SHInstance:
         await self.client.send_message(self.president, messageToPres + "Please respond with a number between 1 and {}".format(x+1))
         print("Message sent - Kill")
         properResponse = False
-        while not properResponse:
-            reply = await self.client.wait_for_message(author=self.president)
-            print("Message received - Kill")
+        bool1 = True
+        while not (properResponse and bool1):
+            reply = await self.client.wait_for_message()
+            if self.over:
+                return True
+            if reply.author==self.president:
+                print("Message received - Kill")
+                bool1 = True
+            else:
+                bool1 = False
             try:
                 int(reply.content[0])
                 print("Message recognized as int - Kill")
@@ -389,6 +433,8 @@ async def votePasses(game):
         game.lastChancellor = False
         game.lastPresident = False
         await game.presPolicies()
+        if game.over:
+            return True
         await game.chancellorPolicies()
         if not game.unanimousVeto:
             game.playerElected = True
@@ -438,6 +484,10 @@ async def mainGame(game):
             await game.nomination() #Nominate president
             await game.vote()       #Get players' votes
             await game.countVote()  #Count votes, game.voteOutcome is the result
+
+            #Escape if game has ended 
+            if game.over:
+                break
 
             #Go through all policy selections
             if game.voteOutcome:
