@@ -1,54 +1,14 @@
 import discord
 import asyncio
 import random
-import json
 import logging
-import SH
 import config
+import SH
+import roles
 
 logging.basicConfig(level=logging.INFO)
 
 client = discord.Client()
-
-def initRoles(message):
-    roleDict = {}
-    uniqueRoles = []
-    membersAndUR = {}
-    simCount = 0
-    duplicateMembers = []
-    noUniques = []
-    for r in message.server.roles:
-        roleDict[r] = 0
-    for m in message.server.members:
-        for mr in m.roles:
-            roleDict[mr] += 1
-    for r in roleDict:
-        if roleDict[r] == 1:
-            uniqueRoles.append(r)
-    for r in uniqueRoles:
-        for m in message.server.members:
-            for mr in m.roles:
-                if mr == r:
-                    if not m in membersAndUR:
-                        membersAndUR[m]=r
-                    else:
-                        duplicateMembers.append(m)
-                        membersAndUR.pop(m)
-    for m in message.server.members:
-        try:
-            membersAndUR[m]
-        except KeyError:
-            if not m in duplicateMembers:
-                noUniques.append(m)
-    print("Unique Roles: ")
-    for x in membersAndUR:
-        print(x.name + ' : ' + membersAndUR[x].name)
-    print("Members with multiple unique roles: ")
-    for x in duplicateMembers:
-        print(x.name)
-    print("Members without unique roles:")
-    for x in noUniques:
-        print(x.name)
 
 async def isAdmin(message):
     if message.author.server_permissions.manage_server and message.author.server_permissions.manage_roles:
@@ -129,7 +89,13 @@ async def executeUserCommands(message, command):
 
     #Identifies all members with unique roles, all members without unique roles, and all members who have multiple unique roles. Just diagnostic
     elif command == '!initroles':
-        initRoles(message)
+        await roles.initRoles(message, client)
+
+    elif command == "!colorme":
+        await roles.colorMe(message, client)
+
+    elif command == "!nameme":
+        await roles.nameMe(message, client)
 
 async def executeAdminCommands(message, command):
     #Temporarily blocks a user from reading or posting in the chat   
@@ -156,7 +122,7 @@ async def executeGameCommands(message, command):
         game = config.SHInstances[message.channel.id]
         messageString = ""
         if command == "!gamestatus":
-            awaut client.send_message(message.channel, "There are currently {} Fascist policies and {} Liberal policies enacted".format(game.facistPolicies,
+            await client.send_message(message.channel, "There are currently {} Fascist policies and {} Liberal policies enacted".format(game.facistPolicies,
                                                                                                                                         game.liberalPolicies))
                                       
         elif command == "!playerlist":
@@ -189,34 +155,19 @@ async def executeGameCommands(message, command):
                     messageString = messageString + "{} has voted `{}`\n".format(x.name, game.voteArray[x])
             await client.send_message(message.channel, messageString)
 
-        elif command == "!skip":
-            if game.skipArray == {}:
-                await client.send_message(message.channel, ("{} has begun a vote to end the election early. This requires a majority of the current players to pass. "
-                                                            "Please say `!skip` if you'd like to be counted.").format(message.author))
-                game.skipArray[message.author] = True
-            while not game.skipThreshold:
-                def checkSkip(reply):
-                    if reply.content.startswith("!skip") and reply.author in game.innedPlayerlist:
-                        return True
-                reply = await client.wait_for_message(channel = game.gameChannel, check = checkSkip)
-                game.skipArray[message.author] = True
-                if len(game.skipArray) > game.numOfPlayers/2:
-                    game.skipThreshold = True
-
         elif command == "!endgame":
-            if game.endArray == {}:
+            if game.endArray == {} and not game.over:
                 await client.send_message(message.channel, ("{} has begun a vote to end the game early. This requires a majority of the current players to pass. "
                                                             "Please say `!endgame` if you'd like to be counted.").format(message.author))
                 game.endArray[message.author] = True
-            while not game.over:
-                def checkEnd(reply):
-                    if reply.content.startswith("!endgame") and reply.author in game.innedPlayerlist:
-                        return True
-                reply = await client.wait_for_message(channel = game.gameChannel, check = checkEnd)
+            elif not game.over:
                 game.endArray[message.author] = True
-                if len(game.endArray) > game.numOfPlayers/2:
+                await client.send_message(message.channel, "{} has added their name to those who want to end the game. So far, there are {} "
+                                          "players requesting this".format(message.author, len(game.endArray)))
+                if len(game.endArray) > game.numOfPlayers / 2:
                     game.over = True
-
+                    await client.send_message(message.channel, "The game has been ended early!")
+    
         elif command == "!pinchhit":
             pass
 
@@ -249,7 +200,6 @@ async def on_message(message):
 
     #Dad jokes ftw        
     elif message.content.startswith('I am '):
-        print("test1")
         tempArray = message.content.split(" ")
         if len(tempArray)<4:
             await client.send_message(message.channel, "Hi {}, I'm BugsBot!".format(tempArray[2]))
@@ -259,4 +209,4 @@ async def on_message(message):
             await client.send_message(message.channel, "Hi {}, I'm BugsBot!".format(tempArray[1]))
 
             
-client.run("Mzg2OTYzOTIyMDEzNjUwOTU1.DSDHAw.ghFfoFczDU4aLI2a3NIFv8tJtC8")
+client.run("Mzg2OTYzOTIyMDEzNjUwOTU1.DSWAgg.o2y3mrShVT6OzGcRQMngM-VGLmg")
