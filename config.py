@@ -1,4 +1,4 @@
-SHInstances = {}
+gameInstances = {}
 
 affirmatives = ["!y",
                 "!yes",
@@ -11,19 +11,23 @@ negatives = ["!n",
              "!nein",
              "!nay"]
 
-gameCommands = ["!nominate",
-                "!veto",
-                "!gamestatus",
-                "!playerlist",
-                "!votelist",
-                "!skip",
-                "!endgame",
-                "!pinchhit"]
-
-userCommands = ["!join",
+gameCommands = ["!gamemode",
+                "!join",
                 "!leave",
                 "!start",
-                "!remindme",
+                "!endgame",
+                "!c",
+                "!a"]
+
+SHCommands = ["!nominate",
+              "!veto",
+              "!skip",
+              "!pinchhit",
+              "!playerlist",
+              "!votelist",
+              "!gamestatus"]
+
+userCommands = ["!remindme",
                 "!addquote",
                 "!quote",
                 "!initroles",
