@@ -261,9 +261,4 @@ async def on_message(message):
         if len(tempArray)<3:
             await client.send_message(message.channel, "Hi {}, I'm BugsBot!".format(tempArray[1]))
 
-            
-<<<<<<< HEAD
-client.run("Mzg2OTYzOTIyMDEzNjUwOTU1.DSa3gQ.1W_2MbbYKvwWD14W1U2Q77gI9gg")
-=======
-client.run("Mzk1OTY3NTE5NzQ1Mzc2MjU2.DSalAw.gBaaj_EXqpuBG3Cz-dYDKaV978U")
->>>>>>> 3db3847eda64a0a6c0aff7483a305766570914a3
+client.run("Mzg2OTYzOTIyMDEzNjUwOTU1.DShlPw.gN02f-KluqdcH22sc-by7q_hLaU")
