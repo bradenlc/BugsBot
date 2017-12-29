@@ -209,4 +209,4 @@ async def on_message(message):
             await client.send_message(message.channel, "Hi {}, I'm BugsBot!".format(tempArray[1]))
 
             
-client.run("Mzg2OTYzOTIyMDEzNjUwOTU1.DSWAgg.o2y3mrShVT6OzGcRQMngM-VGLmg")
+client.run("Mzg2OTYzOTIyMDEzNjUwOTU1.DSa3gQ.1W_2MbbYKvwWD14W1U2Q77gI9gg")
