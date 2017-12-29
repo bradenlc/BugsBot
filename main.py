@@ -5,6 +5,7 @@ import logging
 import config
 import SH
 import roles
+import superfight
 
 logging.basicConfig(level=logging.INFO)
 
@@ -31,47 +32,11 @@ async def on_ready():
     print(client.user.name, end="")
     print(client.user.id, end="")
     print("is up and running!")
-    print('------')
-    config.SHInstances = {}
-    for x in client.get_all_channels():
-        config.SHInstances[x.id] = SH.SHInstance(x, client)
 
 async def executeUserCommands(message, command):
-    #Adds user to playerlist
-    if command == '!join':
-        if (not config.SHInstances[message.channel.id].checkIfJoined(message)) and (not config.SHInstances[message.channel.id].gameStarted):
-            config.SHInstances[message.channel.id].innedPlayerlist.append(message.author)
-            await client.send_message(message.channel, 'You\'ve successfully joined the player list, <@{}>. There are currently {} players waiting for the game to start.'.format(message.author.id,str(len(config.SHInstances[message.channel.id].innedPlayerlist))))
-        elif config.SHInstances[message.channel.id].gameStarted:
-            await client.send_message(message.channel, "There's already a game in session")
-        else:
-            await client.send_message(message.channel, 'You\'re already on the player list!')
-
-    #Removes player from playerlist
-    elif command == '!leave':
-        if config.SHInstances[message.channel.id].checkIfJoined(message) and not config.SHInstances[message.channel.id].gameStarted:
-            config.SHInstances[message.channel.id].innedPlayerlist.remove(message.author)
-            await client.send_message(message.channel, 'You\'ve successfully removed yourself from the playerlist')
-        elif config.SHInstances[message.channel.id].gameStarted:
-            await client.send_message(message.channel, 'You can\'t leave! The game is in session!')
-        else:
-            await client.send_message(message.channel, 'You\'re not on the player list!')
-
-    #Starts game, if playerlist has 5 or more players and the author is one of them                                  
-    elif command == '!start':
-        if config.SHInstances[message.channel.id].checkIfJoined(message) and not config.SHInstances[message.channel.id].gameStarted:
-            if len(config.SHInstances[message.channel.id].innedPlayerlist) > 4:
-                config.SHInstances[message.channel.id].gameStarted = True
-                await SH.startGame(message)
-            else:
-                await client.send_message(message.channel, 'You need at least 5 players to start a game!')
-        elif config.SHInstances[message.channel.id].gameStarted:
-            await client.send_message(message.channel, "A game is already in session")
-        else:
-            await client.send_message(message.channel, 'You need to be on the player list to start the game')
-
+    
     #Currently just an interface. Will later trigger reminder
-    elif command == '!remindme':
+    if command == '!remindme':
         reminder = message.content[10:]
         if reminder.startswith('to '):
             reminder = reminder[3:]
@@ -118,8 +83,106 @@ async def executeAdminCommands(message, command):
         remind(reminder,whoToRemind)
 
 async def executeGameCommands(message, command):
+
+    if command == '!gamemode':
+        requestedGamemode = message.content[10:].split(" ")[0].lower()
+        if requestedGamemode == "sh":
+            config.gameInstances[message.channel.id] = SH.SHInstance(message.channel, client)
+            await client.send_message(message.channel, "Your gamemode has been set to SH")
+        elif requestedGamemode == "villain":
+            config.gameInstances[message.channel.id] = superfight.Villain(message.channel, client)
+            await client.send_message(message.channel, "Your gamemode has been set to Villain Fight")
+        elif requestedGamemode == "duel":
+            config.gameInstances[message.channel.id] = superfight.Duel(message.channel, client)
+            await client.send_message(message.channel, "Your gamemode has been set to Duel")
+        else:
+            await client.send_message(message.channel, "That's not a recognized game mode")
+
+    #If config.gameInstances[message.channel.id] throws KeyError, specify that the channel's gamemode is "Unselected"     
     try:
-        game = config.SHInstances[message.channel.id]
+        print(str(config.gameInstances[message.channel.id]))
+    except KeyError:
+        config.gameInstances[message.channel.id] = "Unselected"
+
+    if not config.gameInstances[message.channel.id] == "Unselected":
+        #Adds user to playerlist
+        if command == '!join':
+            if (not config.gameInstances[message.channel.id].checkIfJoined(message)) and (not config.gameInstances[message.channel.id].started):
+                config.gameInstances[message.channel.id].innedPlayerlist.append(message.author)
+                await client.send_message(message.channel, 'You\'ve successfully joined the player list, <@{}>. There are currently {} players waiting for the game to start.'.format(message.author.id,str(len(config.gameInstances[message.channel.id].innedPlayerlist))))
+            elif config.gameInstances[message.channel.id].started:
+                await client.send_message(message.channel, "There's already a game in session")
+            else:
+                await client.send_message(message.channel, 'You\'re already on the player list!')
+
+        #Removes player from playerlist
+        elif command == '!leave':
+            if config.gameInstances[message.channel.id].checkIfJoined(message) and not config.gameInstances[message.channel.id].started:
+                config.gameInstances[message.channel.id].innedPlayerlist.remove(message.author)
+                await client.send_message(message.channel, 'You\'ve successfully removed yourself from the playerlist')
+            elif config.gameInstances[message.channel.id].started:
+                await client.send_message(message.channel, 'You can\'t leave! The game is in session!')
+            else:
+                await client.send_message(message.channel, 'You\'re not on the player list!')
+
+        #Starts game, if playerlist has 5 or more players and the author is one of them                                  
+        elif command == '!start':
+            if config.gameInstances[message.channel.id].gameMode == "SH":
+                if config.gameInstances[message.channel.id].checkIfJoined(message) and not config.gameInstances[message.channel.id].started:
+                    if len(config.gameInstances[message.channel.id].innedPlayerlist) > 4 and len(config.gameInstances[message.channel.id].innedPlayerlist) < 11:
+                        config.gameInstances[message.channel.id].started = True
+                        await SH.startGame(message)
+                    else:
+                        await client.send_message(message.channel, 'You need 5-10 players to start a game!')
+                elif config.gameInstances[message.channel.id].started:
+                    await client.send_message(message.channel, "A game is already in session")
+                else:
+                    await client.send_message(message.channel, 'You need to be on the player list to start the game')
+            elif config.gameInstances[message.channel.id].gameMode == "Duel":
+                if config.gameInstances[message.channel.id].checkIfJoined(message) and not config.gameInstances[message.channel.id].started:
+                    if len(config.gameInstances[message.channel.id].innedPlayerlist) == 3:
+                        config.gameInstances[message.channel.id].started = True
+                        config.gameInstances[message.channel.id].arbiterCounter = random.randrange(0, len(config.gameInstances[message.channel.id].innedPlayerlist))
+                        await superfight.main(config.gameInstances[message.channel.id])
+                    else:
+                        await client.send_message(message.channel, 'You need 3 players to start a game!')
+                elif config.gameInstances[message.channel.id].started:
+                    await client.send_message(message.channel, "A game is already in session")
+                else:
+                    await client.send_message(message.channel, 'You need to be on the player list to start the game')
+            elif config.gameInstances[message.channel.id].gameMode == "Villain":
+                if config.gameInstances[message.channel.id].checkIfJoined(message) and not config.gameInstances[message.channel.id].started:
+                    if len(config.gameInstances[message.channel.id].innedPlayerlist) > 2 and len(config.gameInstances[message.channel.id].innedPlayerlist) < 11:
+                        config.gameInstances[message.channel.id].started = True
+                        config.gameInstances[message.channel.id].arbiterCounter = random.randrange(0, len(config.gameInstances[message.channel.id].innedPlayerlist))
+                        await superfight.main(config.gameInstances[message.channel.id])
+                    else:
+                        await client.send_message(message.channel, 'You need 3-10 players to start a game!')
+                elif config.gameInstances[message.channel.id].started:
+                    await client.send_message(message.channel, "A game is already in session")
+                else:
+                    await client.send_message(message.channel, 'You need to be on the player list to start the game')
+
+        #Begins voting to end the game
+        elif command == "!endgame":
+                if game.endArray == {} and not game.over:
+                    await client.send_message(message.channel, ("{} has begun a vote to end the game early. This requires a majority of the current players to pass. "
+                                                                "Please say `!endgame` if you'd like to be counted.").format(message.author))
+                    game.endArray[message.author] = True
+                elif not game.over:
+                    game.endArray[message.author] = True
+                    await client.send_message(message.channel, "{} has added their name to those who want to end the game. So far, there are {} "
+                                              "players requesting this".format(message.author, len(game.endArray)))
+                    if len(game.endArray) > game.numOfPlayers / 2:
+                        game.over = True
+                        await client.send_message(message.channel, "The game has been ended early!")
+    else:
+        await client.send_message(message.channel, "You haven't specified a game mode!")
+
+
+async def executeSHCommands(message, command):
+    try:
+        game = config.gameInstances[message.channel.id]
         messageString = ""
         if command == "!gamestatus":
             await client.send_message(message.channel, "There are currently {} Fascist policies and {} Liberal policies enacted".format(game.facistPolicies,
@@ -154,19 +217,6 @@ async def executeGameCommands(message, command):
                 else:
                     messageString = messageString + "{} has voted `{}`\n".format(x.name, game.voteArray[x])
             await client.send_message(message.channel, messageString)
-
-        elif command == "!endgame":
-            if game.endArray == {} and not game.over:
-                await client.send_message(message.channel, ("{} has begun a vote to end the game early. This requires a majority of the current players to pass. "
-                                                            "Please say `!endgame` if you'd like to be counted.").format(message.author))
-                game.endArray[message.author] = True
-            elif not game.over:
-                game.endArray[message.author] = True
-                await client.send_message(message.channel, "{} has added their name to those who want to end the game. So far, there are {} "
-                                          "players requesting this".format(message.author, len(game.endArray)))
-                if len(game.endArray) > game.numOfPlayers / 2:
-                    game.over = True
-                    await client.send_message(message.channel, "The game has been ended early!")
     
         elif command == "!pinchhit":
             pass
@@ -192,6 +242,9 @@ async def on_message(message):
         elif command in config.gameCommands:
             await executeGameCommands(message, command)
 
+        elif command in config.SHCommands:
+            await executeSHCommands(message, command)
+
         elif command in config.affirmatives or command in config.negatives:
             pass
         
@@ -209,4 +262,4 @@ async def on_message(message):
             await client.send_message(message.channel, "Hi {}, I'm BugsBot!".format(tempArray[1]))
 
             
-client.run("Mzg2OTYzOTIyMDEzNjUwOTU1.DSWAgg.o2y3mrShVT6OzGcRQMngM-VGLmg")
+client.run("Mzk1OTY3NTE5NzQ1Mzc2MjU2.DSalAw.gBaaj_EXqpuBG3Cz-dYDKaV978U")
