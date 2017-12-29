@@ -3,20 +3,18 @@ import asyncio
 import random
 import logging
 import config
+from gameSuperclass import *
 
-class SHInstance:
+class SHInstance(GameInstance):
     #Initate all variables to their default state
     def __init__(self, gameChannel, client):
-        self.client = client
-        self.gameChannel = gameChannel
+        super().__init__(gameChannel, client, "SH")
         self.presidentCounter = 0
         self.facistPolicies = 0
         self.liberalPolicies = 0
-        self.numOfPlayers = 0
-        self.gameMode = 0
+        self.SHMode = 0
         self.skipThreshold = False
         self.playerElected = False
-        self.gameStarted = False
         self.voteOutcome = False
         self.nominatedPlayer = False
         self.newFascist = False
@@ -24,7 +22,6 @@ class SHInstance:
         self.chancellor = False
         self.hitler = False
         self.enactedPolicy = False
-        self.over = False
         self.vetoEnabled = False
         self.unanimousVeto = False
         self.lastChancellor = False
@@ -32,21 +29,12 @@ class SHInstance:
         self.peekEnabled = False
         self.voteArray = {}
         self.skipArray = {}
-        self.endArray = {}
         self.turnDeck = []
         self.fascists = []
-        self.innedPlayerlist = []
         self.policyDeck = ["Fascist","Fascist","Fascist","Fascist","Fascist","Fascist","Fascist","Fascist","Fascist","Fascist","Fascist",
                            "Liberal","Liberal","Liberal","Liberal","Liberal","Liberal"]
         self.fullDeck = ["Fascist","Fascist","Fascist","Fascist","Fascist","Fascist","Fascist","Fascist","Fascist","Fascist","Fascist",
                          "Liberal","Liberal","Liberal","Liberal","Liberal","Liberal"]
-
-    #Chech if player who sent message is in innedPlayerlist
-    def checkIfJoined(self, message):
-        for innedPlayer in self.innedPlayerlist:
-            if innedPlayer == message.author:
-                return True
-        return False
 
     #Add facist to facist list, accounting for duplicates 
     def addFascist(self):
@@ -71,14 +59,14 @@ class SHInstance:
 
     #Send role PMs to facists
     async def sendMessages(self):
-        if self.gameMode == 1:
+        if self.SHMode == 1:
             await self.client.send_message(self.hitler, "You're Hitler. Your Fascist teammate is " + self.fascists[0].name)
             await self.client.send_message(self.fascists[0], "You're a Fascist. Your job is to help Hitler, " + self.hitler.name)
-        elif self.gameMode == 2:
+        elif self.SHMode == 2:
             await self.client.send_message(self.hitler, "You're Hitler. Because you have more than one teammate, you don't get to know who they are")
             await self.client.send_message(self.fascists[0], "You're a Fascist. Your teammate is {} and Hitler is {}".format(self.fascists[1].name, self.hitler.name))
             await self.client.send_message(self.fascists[1], "You're a Fascist. Your teammate is {} and Hitler is {}".format(self.fascists[0].name, self.hitler.name))
-        elif self.gameMode == 3:
+        elif self.SHMode == 3:
             await self.client.send_message(self.fascists[0], ("You're a Fascist. Your teammates are {} and {}. "
                                                               " Hitler is {}.").format(self.fascists[1].name, self.fascists[2].name, self.hitler.name))
             await self.client.send_message(self.fascists[1], ("You're a Fascist. Your teammates are {} and {}. "
@@ -365,7 +353,7 @@ class SHInstance:
     async def addPolicy(self, policy):
         if policy == "Fascist":
             self.facistPolicies = self.facistPolicies + 1
-            if self.gameMode == 1: #numOfPlayers < 7
+            if self.SHMode == 1: #numOfPlayers < 7
                 if self.facistPolicies == 3:
                     self.peekEnabled = True
                 elif self.facistPolicies == 4:
@@ -373,7 +361,7 @@ class SHInstance:
                 elif self.facistPolicies == 5:
                     await self.presKill()
                     self.vetoEnabled = True
-            elif self.gameMode == 2:
+            elif self.SHMode == 2:
                 if self.facistPolicies == 2:
                     await self.presInvestigate()
                 elif self.facistPolicies == 3:
@@ -384,7 +372,7 @@ class SHInstance:
                 elif self.facistPolicies == 5:
                     await self.presKill()
                     self.vetoEnabled = True
-            elif self.gameMode == 3:
+            elif self.SHMode == 3:
                 if self.facistPolicies in [1,2]:
                     await self.presInvestigate()
                 elif self.facistPolicies == 3:
@@ -459,13 +447,13 @@ async def startGame(message):
     game.numOfPlayers = len(game.innedPlayerlist)
     if game.numOfPlayers > 8:
         game.numOfFascists = 3
-        game.gameMode = 3
+        game.SHMode = 3
     elif game.numOfPlayers > 6:
         game.numOfFascists = 2
-        game.gameMode = 2
+        game.SHMode = 2
     else:
         game.numOfFascists = 1
-        game.gameMode = 1
+        game.SHMode = 1
     game.assignRoles()
     await game.sendMessages()
     game.presidentCounter = random.randrange(0,game.numOfPlayers)
