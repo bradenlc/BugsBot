@@ -55,22 +55,32 @@ async def uniqueRole(message, client):
         uniqueRole = userRoles[0]
         return uniqueRole
     except IndexError:
-        uniqueRole = await client.create_role(message.server, name = "{}'s role".format(message.author.name))
-        await client.add_roles(message.author, uniqueRole)
-        return uniqueRole
+        numOfRoles = 0
+        for x in message.server.roles:
+            numOfRoles += 1
+        if numOfRoles <= 225:
+            uniqueRole = await client.create_role(message.server)
+            await client.edit_role(message.server, uniqueRole, name = "{}'s role".format(message.author.name))
+            await client.add_roles(message.author, uniqueRole)
+            return uniqueRole
+        else:
+            await client.send_message(message.server, "You don't have a unique role, and there are too many roles to give you a new one")
+            return False
 
 async def colorMe(message, client):
     if not message.server is None:
         parseArray = message.content.split("#")
-        if parseArray[1].startswith("0x"):
-            parseArray[1] = parseArray[1][2:]
-        hexCode = parseArray[1][:6]
+        try:
+            hexCode = parseArray[1][:6]
+        except IndexError:
+            await client.send_message(message.channel, "That wasn't a valid hex code. Please use the following format: `#ffffff`")
         try:
             colorInt = discord.Color(int(hexCode, 16))
             member = message.author
             memberRole = await uniqueRole(message, client)
-            await client.edit_role(message.server, memberRole, color = colorInt)
-            await client.send_message(message.channel, "Your color has been modified to hex code `#{}`".format(hexCode))
+            if not memberRole == False:
+                await client.edit_role(message.server, memberRole, color = colorInt)
+                await client.send_message(message.channel, "Your color has been modified to hex code `#{}`".format(hexCode))
         except ValueError:
             await client.send_message(message.channel, "You didn't specify a valid hex code")
         except discord.Forbidden:
@@ -87,13 +97,16 @@ async def nameMe(message, client):
             requestedName = requestedName[:len(requestedName)-1]
         member = message.author
         memberRole = await uniqueRole(message, client)
-        try:
-            await client.edit_role(message.server, memberRole, name = requestedName)
-            await client.send_message(message.channel, "Your role name has been set to `{}`".format(requestedName))
-        except discord.Forbidden:
-            await client.send_message(message.channel, "The bot doesn't have permission to edit your role")
-        except discord.HTTPException:
-            await client.send_message(message.channel, "The bot failed to edit your role")
+        if not memberRole == False:
+            try:
+                await client.edit_role(message.server, memberRole, name = requestedName)
+                await client.send_message(message.channel, "Your role name has been set to `{}`".format(requestedName))
+            except discord.Forbidden:
+                await client.send_message(message.channel, "The bot doesn't have permission to edit your role")
+            except discord.HTTPException:
+                await client.send_message(message.channel, "The bot failed to edit your role")
+    else:
+        await client.send_message(message.channel, "You can't run this command here")
         
 
 
