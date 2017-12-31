@@ -17,7 +17,7 @@ def breakpoints(inputString):
 
 def parseString(inputString, breakpointList):
     parsedString = [inputString[:breakpointList[0]]]
-    for i in range(len(breakpointList)-1):
+    for i in range(0,len(breakpointList)-1):
         parsedString.append(inputString[breakpointList[i]:breakpointList[i+1]])
     searchList = []
     for x in parsedString:
@@ -35,7 +35,7 @@ def formatList(myList):
             myList[x] = myList[x][1:]
         while myList[x].endswith(" "):
             myList[x] = myList[x][:len(myList[x])-1]
-        myList[x].replace(" ", "+")
+        myList[x] = myList[x].replace(" ", "+")
     return myList
 
 def findEquivalent(order):
@@ -81,7 +81,7 @@ def resolveSearch(inputString):
     for x in searchList:
         if not x.startswith("!"):
             query = x
-            query.replace(" ", "+")
+            query = query.replace(" ", "+")
         elif x.startswith("!tags"):
             tags = x
         elif x.startswith("!not"):
@@ -100,7 +100,7 @@ def resolveSearch(inputString):
                 after = after[:len(after)-1]
         elif x.startswith("!speaker"):
             speaker = x
-            speaker.replace(" ", "+")
+            speaker = speaker.replace(" ", "+")
         elif x.startswith("!order"):
             order = x
             
