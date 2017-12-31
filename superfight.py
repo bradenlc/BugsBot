@@ -178,16 +178,22 @@ class Superfight(GameInstance):
     async def revealFighters(self):
         characterAnnouncementString = ""
         for player in self.dealTo:
-            playerString = "{}'s fighter is {}, with the following modifiers:\n".format(player.name, self.character[player])
+            playerString = "{}'s fighter is `{}`, with the following modifiers:\n".format(player.name, self.character[player])
             i = 1
             for attribute in self.attributes[player]:
                 playerString = playerString + "{}) {}\n".format(i, attribute)
                 i += 1
-            characterAnnouncementString = characterAnnouncementString + playerString
+            characterAnnouncementString = characterAnnouncementString + playerString + "\n"
         await self.client.send_message(self.gameChannel, characterAnnouncementString)
 
     async def assignArbiter(self):
         self.arbiter = self.innedPlayerlist[self.arbiterCounter%len(self.innedPlayerlist)]
+        if self.gameMode == "Duel":
+            await self.client.send_message(self.arbiter, "You're the arbiter for this round")
+        elif self.gameMode == "Villain":
+            await self.client.send_message(self.arbiter, "You're the villain this round")
+        else:
+            print("Error Message 1")
 
     def createDealList(self):
         self.dealTo = []
@@ -202,7 +208,7 @@ class Superfight(GameInstance):
             for player in self.dealTo:
                 messageString = messageString + "\n{}) {}".format(i, player.name)
             await self.client.send_message(self.gameChannel, ("Villain, please choose who you think would best defeat your character. You can choose by typing "
-                                                         "`!select @user`. Your options are: " + messageString + "Players, you may argue your case. The Villain "
+                                                         "`!select @user`. Your options are: " + messageString + "\nPlayers, you may argue your case. The Villain "
                                                          "may choose at whatever time they like, so convince them quickly!"))
         elif nameToCall == "Arbiter":
             messageString = ""
@@ -210,7 +216,7 @@ class Superfight(GameInstance):
             for player in self.dealTo:
                 messageString = messageString + "\n{}) {}".format(i, player.name)
             await self.client.send_message(self.gameChannel, ("Arbiter, please choose which character you think would win in a fight. You can choose by typing "
-                                                         "`!select @user`. Your options are: " + messageString + "Players, you may argue your case. The Arbiter "
+                                                         "`!select @user`. Your options are: " + messageString + "\nPlayers, you may argue your case. The Arbiter "
                                                          "may choose at whatever time they like, so convince them quickly!"))
         def checkSelection(reply):
             if reply.content.startswith("!select"):
@@ -221,11 +227,17 @@ class Superfight(GameInstance):
                     return False
         reply = await self.client.wait_for_message(author = self.arbiter, check = checkSelection)
         self.scoreboard[reply.mentions[0]] += 1
+
+    async def giveRandomAttr(self):
+        if len(self.attrDeck) < len(self.dealTo):
+            self.attrDeck = self.fullAttrDeck
+        for player in self.dealTo:
+            self.attributes[player].append(self.attrDeck[random.randrange(0,len(self.attrDeck))])
                     
 
 class Villain(Superfight):
     def __init__(self, gameChannel, client):
-        super().__init__(gameChannel, client, "Villian")
+        super().__init__(gameChannel, client, "Villain")
 
     async def playRemainingAttr(self):
         i = 0
@@ -234,8 +246,8 @@ class Villain(Superfight):
                 await self.client.send_message(self.dealTo[i], ("You have the remaining cards:\n1) {}\n2) {}\nPlease respond with the number of the card you'd like to "
                                                            "play and the user that you'd like to play it on. Note: You are permitted to play it on yourself, if you "
                                                            "so choose. Please note that because you need to mention the player, this must be done in the channel "
-                                                           "in which the game is currently taking place.").format(self.playerDeck[player][1][0],
-                                                                                                                  self.playerDeck[player][1][0]))
+                                                           "in which the game is currently taking place.").format(self.playerDeck[self.dealTo[i]][1][0],
+                                                                                                                  self.playerDeck[self.dealTo[i]][1][1]))
                 sufficientReply = False
                 warningGiven = False
                 while not sufficientReply:
@@ -243,7 +255,7 @@ class Villain(Superfight):
                     if reply.channel == self.gameChannel:
                         number = False
                         user = False
-                        parsedReply = reply.split(" ")
+                        parsedReply = reply.content.split(" ")
                         for word in parsedReply:
                             if word in ["1", "2"]:
                                 number = int(word)-1
@@ -251,7 +263,7 @@ class Villain(Superfight):
                             try:
                                 user = reply.mentions[0]
                                 if user in self.innedPlayerlist:
-                                    playedCard = self.playerDeck[player][1].pop(number)
+                                    playedCard = self.playerDeck[reply.author][1].pop(number)
                                     self.attributes[user].append(playedCard)
                                     await self.client.send_message(self.gameChannel, "{} has played the modifier `{}` on {}".format(self.dealTo[i].name, playedCard,
                                                                                                                                user.name))                                                                                                                           
@@ -266,7 +278,7 @@ class Villain(Superfight):
             else:
                 x = i-len(self.dealTo)
                 await self.client.send_message(self.dealTo[x], ("Your last remaining card is {}. Please tag the user you'd like to "
-                                                                            "play it on.").format(self.playerDeck[player][1][0]))
+                                                                            "play it on.").format(self.playerDeck[x][1][0]))
                 sufficientReply = False
                 while not sufficientReply:
                     reply = await self.client.wait_for_message(author = self.dealTo[x])
@@ -274,7 +286,7 @@ class Villain(Superfight):
                         try:
                             user = reply.mentions[0]
                             if user in self.innedPlayerlist:
-                                playedCard = self.playerDeck[player][1].pop(0)
+                                playedCard = self.playerDeck[self.dealTo[x]][1].pop(0)
                                 self.attributes[user].append(playedCard)
                                 await self.client.send_message(self.gameChannel, "{} has played the modifier `{}` on {}".format(self.dealTo[x].name, playedCard,
                                                                                                                            user.name))
@@ -287,12 +299,6 @@ class Villain(Superfight):
 class Duel(Superfight):
     def __init__(self, gameChannel, client):
         super().__init__(gameChannel, client, "Duel")
-
-    async def giveRandomAttr(self):
-        if len(self.attrDeck) < len(self.dealTo):
-            self.attrDeck = self.fullAttrDeck
-        for player in self.dealTo:
-            self.attributes[player].append(self.attrDeck[random.randrange(0,len(self.attrDeck))])
 
 def initScoreboard(game):
     for player in game.innedPlayerlist:
@@ -309,11 +315,15 @@ async def main(game):
     initScoreboard(game)
     while myIterator != len(game.innedPlayerlist) and not game.over:
         await game.assignArbiter()
-        print(game.gameMode)
+        print("Game Triggered")
         if game.gameMode == "Villain":
+            print("Villain mode recognized")
+            await game.client.send_message(game.gameChannel, "The Villain is choosing cards")
             game.dealTo = [game.arbiter]
             await game.dealCards()
+            print("Cards should be dealt")
             await game.receiveFighters()
+            await game.giveRandomAttr()
             await game.revealFighters()
         game.createDealList()
         await game.dealCards()
@@ -329,6 +339,8 @@ async def main(game):
         await printScoreboard(game)
         game.arbiterCounter += 1
         myIterator += 1
+    await game.client.send_message(game.gameChannel, "Everyone has had a turn as Arbiter, so the game has ended.")
+    game = Duel(game.gameChannel, game.client)
     
 
 
