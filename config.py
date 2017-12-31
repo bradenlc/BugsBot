@@ -16,8 +16,9 @@ gameCommands = ["!gamemode",
                 "!leave",
                 "!start",
                 "!endgame",
-                "!c",
-                "!a"]
+                "!c", "!c1", "!c2", "!c3",
+                "!a", "!a1", "!a2", "!a3",
+                "!select"]
 
 SHCommands = ["!nominate",
               "!veto",
@@ -32,7 +33,10 @@ userCommands = ["!remindme",
                 "!quote",
                 "!initroles",
                 "!colorme",
-                "!nameme"]
+                "!nameme",
+                "!world",
+                "!info",
+                "!stats"]
 
 adminCommands = ["!bedtime",
                  "!remind"]
