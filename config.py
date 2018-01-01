@@ -34,14 +34,11 @@ userCommands = ["!remindme",
                 "!initroles",
                 "!colorme",
                 "!nameme",
-<<<<<<< HEAD
                 "!help",
-                "!commands"]
-=======
+                "!commands",
                 "!world",
                 "!info",
                 "!stats"]
->>>>>>> 25402167236ee7c182278dd70df64b2c3a6b2747
 
 adminCommands = ["!bedtime",
                  "!remind"]

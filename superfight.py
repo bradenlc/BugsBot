@@ -245,15 +245,10 @@ class Villain(Superfight):
         while not i == 2*len(self.dealTo):
             if i < len(self.dealTo):
                 await self.client.send_message(self.dealTo[i], ("You have the remaining cards:\n1) {}\n2) {}\nPlease respond with the number of the card you'd like to "
-                                                           "play and the user that you'd like to play it on. Note: You are permitted to play it on yourself, if you "
-                                                           "so choose. Please note that because you need to mention the player, this must be done in the channel "
-<<<<<<< HEAD
-                                                           "in which the game is currently taking place.").format(self.playerDeck[player][1][0],
-                                                                                                                  self.playerDeck[player][1][1]))
-=======
-                                                           "in which the game is currently taking place.").format(self.playerDeck[self.dealTo[i]][1][0],
-                                                                                                                  self.playerDeck[self.dealTo[i]][1][1]))
->>>>>>> 25402167236ee7c182278dd70df64b2c3a6b2747
+                                                                "play and the user that you'd like to play it on. Note: You are permitted to play it on yourself, if you "
+                                                                "so choose. Please note that because you need to mention the player, this must be done in the channel "
+                                                                "in which the game is currently taking place.").format(self.playerDeck[self.dealTo[i]][1][0],
+                                                                                                                       self.playerDeck[self.dealTo[i]][1][1]))
                 sufficientReply = False
                 warningGiven = False
                 while not sufficientReply:
