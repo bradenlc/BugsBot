@@ -153,18 +153,19 @@ class Superfight(GameInstance):
                         while splicedReply[x].startswith(" "):
                             splicedReply[x] = splicedReply[x][1:]
                         if splicedReply[x][0] in ["1", "2", "3"]:
-                            self.charSelectionStatus[reply.author] = "Selected"
-                            self.character[reply.author]= self.playerDeck[reply.author][0][int(splicedReply[x][0]) - 1]
+                            self.charSelectionStatus[reply.author] = self.playerDeck[reply.author][0][int(splicedReply[x][0]) - 1]
                             await self.client.send_message(reply.author, "Your character selection was received")
                     if splicedReply[x].startswith("a"):
                         splicedReply[x] = splicedReply[x][1:]
                         while splicedReply[x].startswith(" "):
                             splicedReply[x] = splicedReply[x][1:]
                         if splicedReply[x][0] in ["1", "2", "3"]:
-                            self.attrSelectionStatus[reply.author] = "Selected"
-                            self.attributes[reply.author].append(self.playerDeck[reply.author][1].pop(int(splicedReply[x][0]) - 1))
+                            self.attrSelectionStatus[reply.author] = int(splicedReply[x][0]) - 1))
                             await self.client.send_message(reply.author, "Your attribute selection was received")
                 allSelected = self.checkAllSelected()
+        for player in self.dealTo:
+            self.character[player] = self.charSelectionStatus[player]
+            self.attributes[player].append(self.playerDeck[player][1].pop(self.attrSelectionStatus[player]))
         print("Escaped loop")
                 
     def checkAllSelected(self):
@@ -235,7 +236,7 @@ class Villain(Superfight):
                                                            "play and the user that you'd like to play it on. Note: You are permitted to play it on yourself, if you "
                                                            "so choose. Please note that because you need to mention the player, this must be done in the channel "
                                                            "in which the game is currently taking place.").format(self.playerDeck[player][1][0],
-                                                                                                                  self.playerDeck[player][1][0]))
+                                                                                                                  self.playerDeck[player][1][1]))
                 sufficientReply = False
                 warningGiven = False
                 while not sufficientReply:
