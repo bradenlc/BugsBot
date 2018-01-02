@@ -27,7 +27,7 @@ def bedtime(message):
         #Set 'bedtime' for user based on message parsing
         pass
 
-def sendHelpMessage(message):
+async def sendHelpMessage(message):
     if isAdmin(message):
         await client.send_message(message.channel, "`!gamemode [mode]` - Changes the mode of the game you’re playing. Current options are SH (5-10 players), Villain (3-10 players), or Duel (3 players)\n`!rules` - Gives a link to a copy of of the rules of the game you’re currently playing\n`!join` - Add yourself to the player list\n`!leave` - Remove yourself from the player list \n`!start` - Begins the game. Requires the correct number of players on the player list. Only someone on the playerlist can start the game.\n`!endgame` - Ends the game early. This requires a majority of players to use this command\n`!nameme [name]` - Sets the name of your unique role to “name”. If you don’t have a unique role, and your server has fewer than 225 roles, it gives you one. Requires the bot to have the ability to edit your role\n`!colorme [hex code]` - Sets the color of your unique role to your hex code. If you don’t have a unique role, and your server has fewer than 225 roles, it gives you one. Requires the bot to have the ability to edit your role. If you have a differently colored role that’s shared between multiple people, a server mod or admin may have to raise your unique role on the heiarchy for your color to have any effect.\nCommands are not case sensitive. If they appear to be, or if there are any other errors, please contact me directly. My discord account is Bugsy#9977")
     else:
@@ -106,71 +106,87 @@ async def executeGameCommands(message, command):
             await client.send_message(message.channel, "Your gamemode has been set to Duel")
         else:
             await client.send_message(message.channel, "That's not a recognized game mode")
-
-    #If config.gameInstances[message.channel.id] throws KeyError, specify that the channel's gamemode is "Unselected"     
+            
     try:
-        print(str(config.gameInstances[message.channel.id]))
+        game = config.gameInstances[message.channel.id]
     except KeyError:
-        config.gameInstances[message.channel.id] = "Unselected"
+        game = "Unselected"
 
-    if not config.gameInstances[message.channel.id] == "Unselected":
+    if not game == "Unselected":
         #Adds user to playerlist
         if command == '!join':
-            if (not config.gameInstances[message.channel.id].checkIfJoined(message)) and (not config.gameInstances[message.channel.id].started):
-                config.gameInstances[message.channel.id].innedPlayerlist.append(message.author)
-                await client.send_message(message.channel, 'You\'ve successfully joined the player list, <@{}>. There are currently {} players waiting for the game to start.'.format(message.author.id,str(len(config.gameInstances[message.channel.id].innedPlayerlist))))
-            elif config.gameInstances[message.channel.id].started:
+            if (not game.checkIfJoined(message)) and (not game.started):
+                game.innedPlayerlist.append(message.author)
+                await client.send_message(message.channel, ('You\'ve successfully joined the player list, <@{}>. There are currently {} players waiting for the '
+                                                            'game to start.').format(message.author.id,str(len(game.innedPlayerlist))))
+            elif game.started:
                 await client.send_message(message.channel, "There's already a game in session")
             else:
                 await client.send_message(message.channel, 'You\'re already on the player list!')
 
         #Removes player from playerlist
         elif command == '!leave':
-            if config.gameInstances[message.channel.id].checkIfJoined(message) and not config.gameInstances[message.channel.id].started:
-                config.gameInstances[message.channel.id].innedPlayerlist.remove(message.author)
+            if game.checkIfJoined(message) and not game.started:
+                game.innedPlayerlist.remove(message.author)
                 await client.send_message(message.channel, 'You\'ve successfully removed yourself from the playerlist')
-            elif config.gameInstances[message.channel.id].started:
+            elif game.started:
                 await client.send_message(message.channel, 'You can\'t leave! The game is in session!')
             else:
                 await client.send_message(message.channel, 'You\'re not on the player list!')
 
         #Starts game, if playerlist has 5 or more players and the author is one of them                                  
         elif command == '!start':
-            if config.gameInstances[message.channel.id].gameMode == "SH":
-                if config.gameInstances[message.channel.id].checkIfJoined(message) and not config.gameInstances[message.channel.id].started:
-                    if len(config.gameInstances[message.channel.id].innedPlayerlist) > 4 and len(config.gameInstances[message.channel.id].innedPlayerlist) < 11:
-                        config.gameInstances[message.channel.id].started = True
+            if game.gameMode == "SH":
+                if game.checkIfJoined(message) and not game.started:
+                    if len(game.innedPlayerlist) > 4 and len(game.innedPlayerlist) < 11:
+                        game.started = True
                         await SH.startGame(message)
                     else:
                         await client.send_message(message.channel, 'You need 5-10 players to start a game!')
-                elif config.gameInstances[message.channel.id].started:
+                elif game.started:
                     await client.send_message(message.channel, "A game is already in session")
                 else:
                     await client.send_message(message.channel, 'You need to be on the player list to start the game')
-            elif config.gameInstances[message.channel.id].gameMode == "Duel":
-                if config.gameInstances[message.channel.id].checkIfJoined(message) and not config.gameInstances[message.channel.id].started:
-                    if len(config.gameInstances[message.channel.id].innedPlayerlist) == 3:
-                        config.gameInstances[message.channel.id].started = True
-                        config.gameInstances[message.channel.id].arbiterCounter = random.randrange(0, len(config.gameInstances[message.channel.id].innedPlayerlist))
-                        await superfight.main(config.gameInstances[message.channel.id])
+            elif game.gameMode == "Duel":
+                if game.checkIfJoined(message) and not game.started:
+                    if len(game.innedPlayerlist) == 3:
+                        game.started = True
+                        game.arbiterCounter = random.randrange(0, len(game.innedPlayerlist))
+                        await superfight.main(game)
                     else:
                         await client.send_message(message.channel, 'You need 3 players to start a game!')
-                elif config.gameInstances[message.channel.id].started:
+                elif game.started:
                     await client.send_message(message.channel, "A game is already in session")
                 else:
                     await client.send_message(message.channel, 'You need to be on the player list to start the game')
-            elif config.gameInstances[message.channel.id].gameMode == "Villain":
-                if config.gameInstances[message.channel.id].checkIfJoined(message) and not config.gameInstances[message.channel.id].started:
-                    if len(config.gameInstances[message.channel.id].innedPlayerlist) > 2 and len(config.gameInstances[message.channel.id].innedPlayerlist) < 11:
-                        config.gameInstances[message.channel.id].started = True
-                        config.gameInstances[message.channel.id].arbiterCounter = random.randrange(0, len(config.gameInstances[message.channel.id].innedPlayerlist))
-                        await superfight.main(config.gameInstances[message.channel.id])
+            elif game.gameMode == "Villain":
+                if game.checkIfJoined(message) and not game.started:
+                    if len(game.innedPlayerlist) > 2 and len(game.innedPlayerlist) < 11:
+                        game.started = True
+                        game.arbiterCounter = random.randrange(0, len(game.innedPlayerlist))
+                        await superfight.main(game)
                     else:
                         await client.send_message(message.channel, 'You need 3-10 players to start a game!')
-                elif config.gameInstances[message.channel.id].started:
+                elif game.started:
                     await client.send_message(message.channel, "A game is already in session")
                 else:
                     await client.send_message(message.channel, 'You need to be on the player list to start the game')
+
+        elif command == "!rules":
+            rulesDict = {
+                "SH": ("http://secrethitler.com/assets/Secret_Hitler_Rules.pdf")
+                "Duel": ("This game is divided into 3 rounds, each of which have identical rules. To begin the first round, a random player is chosen as 'Arbiter'. The Arbiter serves as "
+                         "the judge for the round. Each of the other two players are then dealt 3 character cards and 3 attribute cards. They then choose one of each to construct their "
+                         "fighter. A second random attribute card is then added to each, and the fighters are both revealed. The Arbiter then has the ability to decide who would win "
+                         "the fight. The players may try to convince the Arbiter to choose in their favor, if they want. Once the arbiter has made a choice, the role shifts and a new "
+                         "round begins. Once everyone has been Arbiter, the game ends.")
+                "Villain": ("This game is divided into a number of rounds, each of which have identical rules. To begin the first round, a random player is chosen as 'Villain'. The "
+                            "Villain is dealt 3 character cards and 3 attribute cards. They then choose one of each to construct their fighter. A second random attribute card is then "
+                            "added, and their fighter is revealed. Afterwards, each other player is dealt 3 of each card type, and designs their fighter to best defeat the Villain. "
+                            "Once each player is done, the fighters are all revealed, and players may play their remaining attribute cards on whichever player they like, including "
+                            "themselves. Once all remaining cards are played, the Villain chooses which fighter would best beat them. That character wins.")
+                }
+            await client.send_message(message.author, rulesDict[game.gameMode])
 
         #Begins voting to end the game
         elif command == "!endgame":
@@ -185,7 +201,7 @@ async def executeGameCommands(message, command):
                     if len(game.endArray) > game.numOfPlayers / 2:
                         game.over = True
                         await client.send_message(message.channel, "The game has been ended early!")
-    else:
+    elif command in ["!join", "!leave", "!start", "!rules"]:
         await client.send_message(message.channel, "You haven't specified a game mode!")
 
 
@@ -260,7 +276,7 @@ async def on_message(message):
         else:
             await client.send_message(message.channel, 'That\'s not a valid command')
 
-    #Dad jokes ftw        
+    """#Dad jokes ftw        
     elif message.content.startswith('I am '):
         tempArray = message.content.split(" ")
         if len(tempArray)<4:
@@ -268,4 +284,6 @@ async def on_message(message):
     elif message.content.startswith('I\'m '):
         tempArray = message.content.split(" ")
         if len(tempArray)<3:
-            await client.send_message(message.channel, "Hi {}, I'm BugsBot!".format(tempArray[1]))
+            await client.send_message(message.channel, "Hi {}, I'm BugsBot!".format(tempArray[1]))"""
+
+client.run("Mzg2OTYzOTIyMDEzNjUwOTU1.DSyE1Q.XI5SV7hv7iX7WBgMuy30U8-PuX4")

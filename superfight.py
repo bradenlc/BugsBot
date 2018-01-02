@@ -68,10 +68,10 @@ class Superfight(GameInstance):
                              "Wearing Sharpened Stilettos", "Wearing Skis", "With A Prehensile Tail", "Armed With A Dubstep Gun", "Armed With A Gatling Gun",
                              "Armed With A Lightsaber That Has Two Smaller Lightsabers Sticking Out Of The Hilt", "Armed With A Machete",
                              "Armed With A Piranha Launcher", "Armed With A Railgun", "Armed With A Really Really Bright Laser Pointer",
-                             "Armed With A Surface-To-Air Missile Launcher", "Armer With A Limitless Loot Crate", "Can Call Orbital Bombardments",
+                             "Armed With A Surface-To-Air Missile Launcher", "Armed With A Limitless Loot Crate", "Can Call Orbital Bombardments",
                              "Can Fly...At The Speed Of Molasses", "Can Leap Over Tall Buildings In A Single Bound", "Can Only Be Killer By A Shot To The Head",
                              "Can Only Be Killer By A Stake Through The Heart", "Can Summon Infinite Trampolines", "Cannons Instead Of Hands",
-                             "Chained To Their Evil Twin", "Commands An Amry Of Disposable Minions", "Covered In Gasoline", "Everything They Touch Turns Inside Out",
+                             "Chained To Their Evil Twin", "Commands An Army Of Disposable Minions", "Covered In Gasoline", "Everything They Touch Turns Inside Out",
                              "Flaming Hands", "Has An Enormous Exposed Brain", "In A Flying Saucer", "Is Faster Than A Speeding Bullet", "Is Really Really Emotional",
                              "Is Really Really Good At Parkour ...Really", "Leading A Team Of Trained Velociraptors", "Literally A Gift", "Machine Guns For Legs",
                              "Regrows Body Parts At Will", "Riding A Nuclear Missile", "Shoots Lasers Out Of Ears", "Stuck In One Of Those Electric Cars For Toddlers",
@@ -127,7 +127,7 @@ class Superfight(GameInstance):
             for x in range(0,3):
                 self.playerDeck[player][0].append(self.charDeck.pop(random.randrange(0,len(self.charDeck))))
                 self.playerDeck[player][1].append(self.attrDeck.pop(random.randrange(0,len(self.attrDeck))))
-            await self.client.send_message(player, ("You received the following characters:\n1) {}\n 2) {}\n3) {}\nYou also received the following attributes:\n"
+            await self.client.send_message(player, ("You received the following characters:\n1) {}\n2) {}\n3) {}\nYou also received the following attributes:\n"
                                                "1) {}\n2) {}\n3) {}").format(self.playerDeck[player][0][0], self.playerDeck[player][0][1], self.playerDeck[player][0][2],
                                                                              self.playerDeck[player][1][0], self.playerDeck[player][1][1], self.playerDeck[player][1][2]))
 
@@ -146,22 +146,31 @@ class Superfight(GameInstance):
             if self.over:
                 break
             if reply.author in self.dealTo and reply.channel.is_private:
-                splicedReply = reply.content.lower().split("!")
+                if reply.content.startswith("!"):
+                    splicedReply = reply.content.lower().split("!")
+                else:
+                    splicedReply = reply.content.lower().split("!")[1:]
                 for x in range(0, len(splicedReply)):
                     if splicedReply[x].startswith("c"):
                         splicedReply[x] = splicedReply[x][1:]
                         while splicedReply[x].startswith(" "):
                             splicedReply[x] = splicedReply[x][1:]
-                        if splicedReply[x][0] in ["1", "2", "3"]:
-                            self.charSelectionStatus[reply.author] = self.playerDeck[reply.author][0][int(splicedReply[x][0]) - 1]
-                            await self.client.send_message(reply.author, "Your character selection was received")
+                        try:
+                            if splicedReply[x][0] in ["1", "2", "3"]:
+                                self.charSelectionStatus[reply.author] = self.playerDeck[reply.author][0][int(splicedReply[x][0]) - 1]
+                                await self.client.send_message(reply.author, "Your character selection was received")
+                        except IndexError:
+                            await self.client.send_message(reply.author, "Please use this format: `!c #`")
                     if splicedReply[x].startswith("a"):
                         splicedReply[x] = splicedReply[x][1:]
                         while splicedReply[x].startswith(" "):
                             splicedReply[x] = splicedReply[x][1:]
-                        if splicedReply[x][0] in ["1", "2", "3"]:
-                            self.attrSelectionStatus[reply.author] = int(splicedReply[x][0]) - 1))
-                            await self.client.send_message(reply.author, "Your attribute selection was received")
+                        try:
+                            if splicedReply[x][0] in ["1", "2", "3"]:
+                                self.attrSelectionStatus[reply.author] = int(splicedReply[x][0]) - 1
+                                await self.client.send_message(reply.author, "Your attribute selection was received")
+                        except IndexError:
+                            await self.client.send_message(reply.author, "Please use this format: `!a #`")
                 allSelected = self.checkAllSelected()
         for player in self.dealTo:
             self.character[player] = self.charSelectionStatus[player]
@@ -208,6 +217,7 @@ class Superfight(GameInstance):
             i = 1
             for player in self.dealTo:
                 messageString = messageString + "\n{}) {}".format(i, player.name)
+                i += 1
             await self.client.send_message(self.gameChannel, ("Villain, please choose who you think would best defeat your character. You can choose by typing "
                                                          "`!select @user`. Your options are: " + messageString + "\nPlayers, you may argue your case. The Villain "
                                                          "may choose at whatever time they like, so convince them quickly!"))
@@ -223,7 +233,10 @@ class Superfight(GameInstance):
             if reply.content.startswith("!select"):
                 try:
                     self.victor = reply.mentions[0]
-                    return True
+                    if self.victor in self.dealTo:
+                        return True
+                    else:
+                        return False
                 except IndexError:
                     return False
         reply = await self.client.wait_for_message(author = self.arbiter, check = checkSelection)
@@ -251,18 +264,24 @@ class Villain(Superfight):
                                                                                                                        self.playerDeck[self.dealTo[i]][1][1]))
                 sufficientReply = False
                 warningGiven = False
+                print("Message Sent")
                 while not sufficientReply:
                     reply = await self.client.wait_for_message(author = self.dealTo[i])
                     if reply.channel == self.gameChannel:
+                        print("Message received")
                         number = False
                         user = False
                         parsedReply = reply.content.split(" ")
                         for word in parsedReply:
+                            print(word)
                             if word in ["1", "2"]:
+                                print("recognized number")
                                 number = int(word)-1
+                        print(number)
                         if not number == False:
                             try:
                                 user = reply.mentions[0]
+                                print(user.name)
                                 if user in self.innedPlayerlist:
                                     playedCard = self.playerDeck[reply.author][1].pop(number)
                                     self.attributes[user].append(playedCard)
@@ -272,6 +291,7 @@ class Villain(Superfight):
                                 else:
                                     await self.client.send_message(self.gameChannel, "Please only play cards on people who are in the game!")
                             except:
+                                print("Failed")
                                 pass
                         if (not sufficientReply) and (not warningGiven):
                             await self.client.send_message(self.gameChannel, "Please use the following formats: `# @user` or `@user #`")
@@ -340,6 +360,7 @@ async def main(game):
         await printScoreboard(game)
         game.arbiterCounter += 1
         myIterator += 1
+    print("Game Over")
     await game.client.send_message(game.gameChannel, "Everyone has had a turn as Arbiter, so the game has ended.")
     game = Duel(game.gameChannel, game.client)
     
