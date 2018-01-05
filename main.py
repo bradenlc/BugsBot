@@ -56,7 +56,6 @@ async def sendHelpMessage(message):
 @client.event
 async def on_ready():
     print(client.user.name, end="")
-    print(client.user.id, end="")
     print("is up and running!")
 
 async def executeUserCommands(message, command):

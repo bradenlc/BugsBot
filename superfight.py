@@ -115,7 +115,6 @@ class Superfight(GameInstance):
         self.arbiterCounter = 0
 
     async def dealCards(self):
-        print(self.dealTo)
         cardsToDeal = len(self.dealTo)*3
         if len(self.attrDeck) < cardsToDeal:
             self.attrDeck = self.fullAttrDeck
@@ -175,14 +174,13 @@ class Superfight(GameInstance):
         for player in self.dealTo:
             self.character[player] = self.charSelectionStatus[player]
             self.attributes[player].append(self.playerDeck[player][1].pop(self.attrSelectionStatus[player]))
-        print("Escaped loop")
                 
     def checkAllSelected(self):
-        print("Checking...")
         for player in self.dealTo:
             if self.charSelectionStatus[player] == "Unselected" or self.attrSelectionStatus[player] == "Unselected":
                 print("Failed on {}".format(player.name))
                 return False
+        print("Succeeded")
         return True
     
     async def revealFighters(self):
@@ -203,7 +201,6 @@ class Superfight(GameInstance):
         elif self.gameMode == "Villain":
             await self.client.send_message(self.arbiter, "You're the villain this round")
         else:
-            print("Error Message 1")
 
     def createDealList(self):
         self.dealTo = []
@@ -265,26 +262,19 @@ class Villain(Superfight):
                                                                                                                        self.playerDeck[self.dealTo[i]][1][1]))
                 sufficientReply = False
                 warningGiven = False
-                print("Message Sent")
                 while not sufficientReply:
                     reply = await self.client.wait_for_message(author = self.dealTo[i])
                     if reply.channel == self.gameChannel:
-                        print("Message received")
                         number = False
                         user = False
                         parsedReply = reply.content.split(" ")
-                        print(parsedReply)
                         for word in parsedReply:
                             if word in ["1", "2"]:
                                 number = int(word)
-                                print("Number recognized: {}".format(number))
-                        print("Number is {}".format(number))
                         if not number == False:
                             number -= 1
-                            print("Number not false")
                             try:
                                 user = reply.mentions[0]
-                                print(user.name)
                                 if user in self.innedPlayerlist:
                                     playedCard = self.playerDeck[reply.author][1].pop(number)
                                     self.attributes[user].append(playedCard)
@@ -294,11 +284,8 @@ class Villain(Superfight):
                                 else:
                                     await self.client.send_message(self.gameChannel, "Please only play cards on people who are in the game!")
                             except:
-                                print("Failed")
-                                pass
-                        else:
-                            print("Number False")
-                        if (not sufficientReply) and (not warningGiven):
+                                await self.client.send_message(self.gameChannel, "Please only tag the player you'd like to play a card on")
+                        elif (not sufficientReply) and (not warningGiven):
                             await self.client.send_message(self.gameChannel, "Please use the following formats: `# @user` or `@user #`")
                             warningGiven = True
             else:
@@ -343,9 +330,7 @@ async def main(game):
     initScoreboard(game)
     while myIterator != len(game.innedPlayerlist) and not game.over:
         await game.assignArbiter()
-        print("Game Triggered")
         if game.gameMode == "Villain":
-            print("Villain mode recognized")
             await game.client.send_message(game.gameChannel, "The Villain is choosing cards")
             game.dealTo = [game.arbiter]
             await game.dealCards()
@@ -371,8 +356,6 @@ async def main(game):
         await printScoreboard(game)
         game.arbiterCounter += 1
         myIterator += 1
-        print(myIterator)
-    print("Game Over")
     await game.client.send_message(game.gameChannel, "Everyone has had a turn to be judge, so the game has ended.")
     config.gameInstances[game.gameChannel.id] = Villain(game.gameChannel, game.client)
 

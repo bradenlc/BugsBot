@@ -8,7 +8,6 @@ class GameInstance:
         self.endArray = {}
         self.numOfPlayers = 0
         self.gameMode = gameMode
-        print("Game object created")
 
     def __str__(self):
         return self.gameMode
