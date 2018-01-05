@@ -18,7 +18,8 @@ gameCommands = ["!gamemode",
                 "!endgame",
                 "!c", "!c1", "!c2", "!c3",
                 "!a", "!a1", "!a2", "!a3",
-                "!select"]
+                "!select",
+                "!rules"]
 
 SHCommands = ["!nominate",
               "!veto",
