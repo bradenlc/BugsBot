@@ -442,7 +442,7 @@ async def threeFailures(game):
     game.over = await game.checkIfWon()
 
 async def startGame(message):
-    game = config.SHInstances[message.channel.id]
+    game = config.gameInstances[message.channel.id]
     await game.trollAonar()
     game.numOfPlayers = len(game.innedPlayerlist)
     if game.numOfPlayers > 8:
@@ -514,5 +514,5 @@ async def mainGame(game):
 
     #Reset game once over
     print("Game over")
-    config.SHInstances[game.gameChannel.id] = SHInstance(game.gameChannel, game.client)
+    config.gameInstances[game.gameChannel.id] = SHInstance(game.gameChannel, game.client)
     
