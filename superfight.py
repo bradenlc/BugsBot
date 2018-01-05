@@ -257,6 +257,7 @@ class Villain(Superfight):
         i = 0
         while not i == 2*len(self.dealTo):
             if i < len(self.dealTo):
+                await self.client.send_message(self.gameChannel, "{} is now playing an attribute".format(self.dealTo[i].name))
                 await self.client.send_message(self.dealTo[i], ("You have the remaining cards:\n1) {}\n2) {}\nPlease respond with the number of the card you'd like to "
                                                                 "play and the user that you'd like to play it on. Note: You are permitted to play it on yourself, if you "
                                                                 "so choose. Please note that because you need to mention the player, this must be done in the channel "
@@ -272,13 +273,15 @@ class Villain(Superfight):
                         number = False
                         user = False
                         parsedReply = reply.content.split(" ")
+                        print(parsedReply)
                         for word in parsedReply:
-                            print(word)
                             if word in ["1", "2"]:
-                                print("recognized number")
-                                number = int(word)-1
-                        print(number)
+                                number = int(word)
+                                print("Number recognized: {}".format(number))
+                        print("Number is {}".format(number))
                         if not number == False:
+                            number -= 1
+                            print("Number not false")
                             try:
                                 user = reply.mentions[0]
                                 print(user.name)
@@ -293,13 +296,16 @@ class Villain(Superfight):
                             except:
                                 print("Failed")
                                 pass
+                        else:
+                            print("Number False")
                         if (not sufficientReply) and (not warningGiven):
                             await self.client.send_message(self.gameChannel, "Please use the following formats: `# @user` or `@user #`")
                             warningGiven = True
             else:
                 x = i-len(self.dealTo)
+                await self.client.send_message(self.gameChannel, "{} is now playing an attribute".format(self.dealTo[x].name))
                 await self.client.send_message(self.dealTo[x], ("Your last remaining card is {}. Please tag the user you'd like to "
-                                                                            "play it on.").format(self.playerDeck[x][1][0]))
+                                                                "play it on.").format(self.playerDeck[self.dealTo[x]][1][0]))
                 sufficientReply = False
                 while not sufficientReply:
                     reply = await self.client.wait_for_message(author = self.dealTo[x])
@@ -316,6 +322,7 @@ class Villain(Superfight):
                                 await self.client.send_message(self.gameChannel, "Please only play cards on people who are in the game!")
                         except:
                             pass
+            i += 1
 
 class Duel(Superfight):
     def __init__(self, gameChannel, client):
@@ -342,16 +349,20 @@ async def main(game):
             await game.client.send_message(game.gameChannel, "The Villain is choosing cards")
             game.dealTo = [game.arbiter]
             await game.dealCards()
-            print("Cards should be dealt")
             await game.receiveFighters()
             await game.giveRandomAttr()
             await game.revealFighters()
         game.createDealList()
         await game.dealCards()
+        await game.client.send_message(game.gameChannel, "Players are now choosing their fighters")
         await game.receiveFighters()
         if game.gameMode == "Villain":
             await game.revealFighters()
+            await game.client.send_message(game.gameChannel, "Players will now take turns playing their remaining attributes on eachother or themselves one by one")
             await game.playRemainingAttr()
+            await game.revealFighters()
+            game.dealTo = [game.arbiter]
+            await game.revealFighters()
             await game.findWinner("Villain")
         else:
             await game.giveRandomAttr()
@@ -360,10 +371,10 @@ async def main(game):
         await printScoreboard(game)
         game.arbiterCounter += 1
         myIterator += 1
+        print(myIterator)
     print("Game Over")
-    await game.client.send_message(game.gameChannel, "Everyone has had a turn as Arbiter, so the game has ended.")
-    game = Duel(game.gameChannel, game.client)
-    
+    await game.client.send_message(game.gameChannel, "Everyone has had a turn to be judge, so the game has ended.")
+    config.gameInstances[game.gameChannel.id] = Villain(game.gameChannel, game.client)
 
 
 
