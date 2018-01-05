@@ -277,16 +277,20 @@ async def on_message(message):
         command = tempArray[0].lower()
         
         if command in config.userCommands:
+            print("{} command invoked in {}".format(command, message.server.name))
             await executeUserCommands(message, command)
             
         elif command in config.adminCommands:
             if (await isAdmin(message)):
+                print("{} command invoked in {}".format(command, message.server.name))
                 await executeAdminCommands(message, command)
                 
         elif command in config.gameCommands:
+            print("{} command invoked in {}".format(command, message.server.name))
             await executeGameCommands(message, command)
 
         elif command in config.SHCommands:
+            print("{} command invoked in {}".format(command, message.server.name)
             await executeSHCommands(message, command)
 
         elif command in config.affirmatives or command in config.negatives:
