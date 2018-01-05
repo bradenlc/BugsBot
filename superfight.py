@@ -200,7 +200,6 @@ class Superfight(GameInstance):
             await self.client.send_message(self.arbiter, "You're the arbiter for this round")
         elif self.gameMode == "Villain":
             await self.client.send_message(self.arbiter, "You're the villain this round")
-        else:
 
     def createDealList(self):
         self.dealTo = []

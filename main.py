@@ -55,7 +55,7 @@ async def sendHelpMessage(message):
     
 @client.event
 async def on_ready():
-    print(client.user.name, end="")
+    print(client.user.name, end=" ")
     print("is up and running!")
 
 async def executeUserCommands(message, command):
@@ -290,7 +290,7 @@ async def on_message(message):
             await executeGameCommands(message, command)
 
         elif command in config.SHCommands:
-            print("{} command invoked in {}".format(command, message.server.name)
+            print("{} command invoked in {}".format(command, message.server.name))
             await executeSHCommands(message, command)
 
         elif command in config.affirmatives or command in config.negatives:
