@@ -59,8 +59,8 @@ async def uniqueRole(message, client):
         for x in message.server.roles:
             numOfRoles += 1
         if numOfRoles <= 225:
-            uniqueRole = await client.create_role(message.server)
-            await client.edit_role(message.server, uniqueRole, name = "{}'s role".format(message.author.name))
+            requestedName = "{}'s role".format(message.author.name)
+            uniqueRole = await client.create_role(message.server, name = requestedName)
             await client.add_roles(message.author, uniqueRole)
             return uniqueRole
         else:
@@ -72,15 +72,14 @@ async def colorMe(message, client):
         parseArray = message.content.split("#")
         try:
             hexCode = parseArray[1][:6]
-        except IndexError:
-            await client.send_message(message.channel, "That wasn't a valid hex code. Please use the following format: `#ffffff`")
-        try:
             colorInt = discord.Color(int(hexCode, 16))
             member = message.author
             memberRole = await uniqueRole(message, client)
             if not memberRole == False:
                 await client.edit_role(message.server, memberRole, color = colorInt)
                 await client.send_message(message.channel, "Your color has been modified to hex code `#{}`".format(hexCode))
+        except IndexError:
+            await client.send_message(message.channel, "That wasn't a valid hex code. Please use the following format: `#ffffff`")
         except ValueError:
             await client.send_message(message.channel, "You didn't specify a valid hex code")
         except discord.Forbidden:
