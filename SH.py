@@ -2,13 +2,13 @@ import discord
 import asyncio
 import random
 import logging
-import config
 from gameSuperclass import *
+import config
 
 class SHInstance(GameInstance):
     #Initate all variables to their default state
     def __init__(self, gameChannel, client):
-        super().__init__(gameChannel, client, "SH")
+        super().__init__(gameChannel, client, "sh")
         self.presidentCounter = 0
         self.facistPolicies = 0
         self.liberalPolicies = 0
@@ -514,5 +514,4 @@ async def mainGame(game):
 
     #Reset game once over
     print("Game over")
-    config.gameInstances[game.gameChannel.id] = SHInstance(game.gameChannel, game.client)
     
