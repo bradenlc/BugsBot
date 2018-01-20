@@ -17,18 +17,31 @@ async def isAdmin(message):
     await client.send_message(message.channel, 'You don\'t have permission to use that command')
     return False
 
+async def newGame(client, channel, requestedGamemode):
+    if requestedGamemode == "sh":
+        config.gameInstances[channel.id] = SH.SHInstance(channel, client)
+        await client.send_message(channel, "Your gamemode has been set to SH")
+    elif requestedGamemode == "villain":
+        config.gameInstances[channel.id] = superfight.Villain(channel, client)
+        await client.send_message(channel, "Your gamemode has been set to Villain Fight")
+    elif requestedGamemode == "duel":
+        config.gameInstances[channel.id] = superfight.Duel(channel, client)
+        await client.send_message(channel, "Your gamemode has been set to Duel")
+    else:
+        await client.send_message(channel, "That's not a recognized game mode")
+
 def remind(reminder, whoToRemind):
     #Add people to list of people to remind
     #Message the list periodically with reminders
     pass
     
-def bedtime(message):
-    if isAdmin(message.author):
+async def bedtime(message):
+    if (await isAdmin(message.author)):
         #Set 'bedtime' for user based on message parsing
         pass
 
 async def sendHelpMessage(message):
-    if isAdmin(message):
+    if (await isAdmin(message)):
         await client.send_message(message.channel, ("`!gamemode [mode]` - Changes the mode of the game you’re playing. Current options are SH (5-10 players), Villain (3-10 players), or "
                                                     "Duel (3 players)\n`!rules` - Gives a link to a copy of of the rules of the game you’re currently playing\n`!join` - Add yourself to "
                                                     "the player list\n`!leave` - Remove yourself from the player list \n`!start` - Begins the game. Requires the correct number of players"
@@ -111,20 +124,10 @@ async def executeAdminCommands(message, command):
         remind(reminder,whoToRemind)
 
 async def executeGameCommands(message, command):
-
+    
     if command == '!gamemode':
         requestedGamemode = message.content[10:].split(" ")[0].lower()
-        if requestedGamemode == "sh":
-            config.gameInstances[message.channel.id] = SH.SHInstance(message.channel, client)
-            await client.send_message(message.channel, "Your gamemode has been set to SH")
-        elif requestedGamemode == "villain":
-            config.gameInstances[message.channel.id] = superfight.Villain(message.channel, client)
-            await client.send_message(message.channel, "Your gamemode has been set to Villain Fight")
-        elif requestedGamemode == "duel":
-            config.gameInstances[message.channel.id] = superfight.Duel(message.channel, client)
-            await client.send_message(message.channel, "Your gamemode has been set to Duel")
-        else:
-            await client.send_message(message.channel, "That's not a recognized game mode")
+        await newGame(client, message.channel, requestedGamemode)
             
     try:
         game = config.gameInstances[message.channel.id]
@@ -132,8 +135,16 @@ async def executeGameCommands(message, command):
         game = "Unselected"
 
     if not game == "Unselected":
+
+        #Resets game signups
+        if command == "!restart" or command == "!reset":
+            if not game.started:
+                await newGame(client, message.channel, game.gameMode)
+            else:
+                await client.sendMessage(message.channel, "You can't restart an in-progress game!")
+            
         #Adds user to playerlist
-        if command == '!join':
+        elif command == '!join':
             if (not game.checkIfJoined(message)) and (not game.started):
                 game.innedPlayerlist.append(message.author)
                 await client.send_message(message.channel, ('You\'ve successfully joined the player list, <@{}>. There are currently {} players waiting for the '
@@ -155,35 +166,38 @@ async def executeGameCommands(message, command):
 
         #Starts game, if playerlist has 5 or more players and the author is one of them                                  
         elif command == '!start':
-            if game.gameMode == "SH":
+            if game.gameMode == "sh":
                 if game.checkIfJoined(message) and not game.started:
                     if len(game.innedPlayerlist) > 4 and len(game.innedPlayerlist) < 11:
                         game.started = True
                         await SH.startGame(message)
+                        await newGame(client, message.channel, "sh")
                     else:
                         await client.send_message(message.channel, 'You need 5-10 players to start a game!')
                 elif game.started:
                     await client.send_message(message.channel, "A game is already in session")
                 else:
                     await client.send_message(message.channel, 'You need to be on the player list to start the game')
-            elif game.gameMode == "Duel":
+            elif game.gameMode == "duel":
                 if game.checkIfJoined(message) and not game.started:
                     if len(game.innedPlayerlist) == 3:
                         game.started = True
                         game.arbiterCounter = random.randrange(0, len(game.innedPlayerlist))
                         await superfight.main(game)
+                        await newGame(client, message.channel, "duel")
                     else:
                         await client.send_message(message.channel, 'You need 3 players to start a game!')
                 elif game.started:
                     await client.send_message(message.channel, "A game is already in session")
                 else:
                     await client.send_message(message.channel, 'You need to be on the player list to start the game')
-            elif game.gameMode == "Villain":
+            elif game.gameMode == "villain":
                 if game.checkIfJoined(message) and not game.started:
                     if len(game.innedPlayerlist) > 2 and len(game.innedPlayerlist) < 11:
                         game.started = True
                         game.arbiterCounter = random.randrange(0, len(game.innedPlayerlist))
                         await superfight.main(game)
+                        await newGame(client, message.channel, "villain")
                     else:
                         await client.send_message(message.channel, 'You need 3-10 players to start a game!')
                 elif game.started:
@@ -277,20 +291,32 @@ async def on_message(message):
         command = tempArray[0].lower()
         
         if command in config.userCommands:
-            print("{} command invoked in {}".format(command, message.server.name))
+            try:
+                print("{} command invoked in {}".format(command, message.server.name))
+            except AttributeError:
+                print("{} command invoked in a private server".format(command))
             await executeUserCommands(message, command)
             
         elif command in config.adminCommands:
             if (await isAdmin(message)):
-                print("{} command invoked in {}".format(command, message.server.name))
+                try:
+                    print("{} command invoked in {}".format(command, message.server.name))
+                except AttributeError:
+                    print("{} command invoked in a private server".format(command))
                 await executeAdminCommands(message, command)
                 
         elif command in config.gameCommands:
-            print("{} command invoked in {}".format(command, message.server.name))
+            try:
+                print("{} command invoked in {}".format(command, message.server.name))
+            except AttributeError:
+                print("{} command invoked in a private server".format(command))
             await executeGameCommands(message, command)
 
         elif command in config.SHCommands:
-            print("{} command invoked in {}".format(command, message.server.name))
+            try:
+                print("{} command invoked in {}".format(command, message.server.name))
+            except AttributeError:
+                print("{} command invoked in a private server".format(command))
             await executeSHCommands(message, command)
 
         elif command in config.affirmatives or command in config.negatives:
@@ -309,4 +335,7 @@ async def on_message(message):
         if len(tempArray)<3:
             await client.send_message(message.channel, "Hi {}, I'm BugsBot!".format(tempArray[1]))"""
 
-client.run("Mzg2OTYzOTIyMDEzNjUwOTU1.DTB3AQ.Svf0rWubXPnowXvfNDsfEfYxeEQ")
+def startUp(client):
+    client.run("Mzg2OTYzOTIyMDEzNjUwOTU1.DTB3AQ.Svf0rWubXPnowXvfNDsfEfYxeEQ")
+
+startUp(client)
