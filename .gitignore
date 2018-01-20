@@ -1,1 +1,3 @@
 onRun.py
+*__pycache__/
+*.cache
