@@ -1,5 +1,7 @@
 import discord
 import random
+import asyncio
+import config
 from gameSuperclass import *
 
 class Superfight(GameInstance):
@@ -196,9 +198,9 @@ class Superfight(GameInstance):
 
     async def assignArbiter(self):
         self.arbiter = self.innedPlayerlist[self.arbiterCounter%len(self.innedPlayerlist)]
-        if self.gameMode == "Duel":
+        if self.gameMode == "duel":
             await self.client.send_message(self.arbiter, "You're the arbiter for this round")
-        elif self.gameMode == "Villain":
+        elif self.gameMode == "villain":
             await self.client.send_message(self.arbiter, "You're the villain this round")
 
     def createDealList(self):
@@ -247,7 +249,7 @@ class Superfight(GameInstance):
 
 class Villain(Superfight):
     def __init__(self, gameChannel, client):
-        super().__init__(gameChannel, client, "Villain")
+        super().__init__(gameChannel, client, "villain")
 
     async def playRemainingAttr(self):
         i = 0
@@ -329,7 +331,7 @@ async def main(game):
     initScoreboard(game)
     while myIterator != len(game.innedPlayerlist) and not game.over:
         await game.assignArbiter()
-        if game.gameMode == "Villain":
+        if game.gameMode == "villain":
             await game.client.send_message(game.gameChannel, "The Villain is choosing cards")
             game.dealTo = [game.arbiter]
             await game.dealCards()
@@ -340,7 +342,7 @@ async def main(game):
         await game.dealCards()
         await game.client.send_message(game.gameChannel, "Players are now choosing their fighters")
         await game.receiveFighters()
-        if game.gameMode == "Villain":
+        if game.gameMode == "villain":
             await game.revealFighters()
             await game.client.send_message(game.gameChannel, "Players will now take turns playing their remaining attributes on eachother or themselves one by one")
             await game.playRemainingAttr()
@@ -356,8 +358,6 @@ async def main(game):
         game.arbiterCounter += 1
         myIterator += 1
     await game.client.send_message(game.gameChannel, "Everyone has had a turn to be judge, so the game has ended.")
-    config.gameInstances[game.gameChannel.id] = Villain(game.gameChannel, game.client)
-
 
 
     
