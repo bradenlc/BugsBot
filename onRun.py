@@ -1,3 +1,2 @@
-client.run(Token)
-print("Hello World")
-print("Testing")
+def beginRunning(client):
+    client.run(Token)
