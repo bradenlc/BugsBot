@@ -6,6 +6,7 @@ import config
 import SH
 import roles
 import superfight
+import onRun
 
 logging.basicConfig(level=logging.INFO)
 
@@ -335,7 +336,5 @@ async def on_message(message):
         if len(tempArray)<3:
             await client.send_message(message.channel, "Hi {}, I'm BugsBot!".format(tempArray[1]))"""
 
-def startUp(client):
-    client.run("Mzg2OTYzOTIyMDEzNjUwOTU1.DTB3AQ.Svf0rWubXPnowXvfNDsfEfYxeEQ")
+onRun.beginRunning(client)
 
-startUp(client)
