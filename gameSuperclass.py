@@ -7,7 +7,7 @@ class GameInstance:
         self.started = False
         self.endArray = {}
         self.numOfPlayers = 0
-        self.gameMode = gameMode
+        self.gameMode = gameMode.lower()
 
     def __str__(self):
         return self.gameMode
