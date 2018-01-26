@@ -212,13 +212,13 @@ async def executeGameCommands(message, command):
 
         elif command == "!rules":
             rulesDict = {
-                "SH": ("http://secrethitler.com/assets/Secret_Hitler_Rules.pdf"),
-                "Duel": ("This game is divided into 3 rounds, each of which have identical rules. To begin the first round, a random player is chosen as 'Arbiter'. The Arbiter serves as "
+                "sh": ("http://secrethitler.com/assets/Secret_Hitler_Rules.pdf"),
+                "duel": ("This game is divided into 3 rounds, each of which have identical rules. To begin the first round, a random player is chosen as 'Arbiter'. The Arbiter serves as "
                          "the judge for the round. Each of the other two players are then dealt 3 character cards and 3 attribute cards. They then choose one of each to construct their "
                          "fighter. A second random attribute card is then added to each, and the fighters are both revealed. The Arbiter then has the ability to decide who would win "
                          "the fight. The players may try to convince the Arbiter to choose in their favor, if they want. Once the arbiter has made a choice, the role shifts and a new "
                          "round begins. Once everyone has been Arbiter, the game ends."),
-                "Villain": ("This game is divided into a number of rounds, each of which have identical rules. To begin the first round, a random player is chosen as 'Villain'. The "
+                "villain": ("This game is divided into a number of rounds, each of which have identical rules. To begin the first round, a random player is chosen as 'Villain'. The "
                             "Villain is dealt 3 character cards and 3 attribute cards. They then choose one of each to construct their fighter. A second random attribute card is then "
                             "added, and their fighter is revealed. Afterwards, each other player is dealt 3 of each card type, and designs their fighter to best defeat the Villain. "
                             "Once each player is done, the fighters are all revealed, and players may play their remaining attribute cards on whichever player they like, including "
@@ -328,9 +328,9 @@ async def on_message(message):
             pass
         
         else:
-            await client.send_message(message.channel, 'That\'s not a valid command')
-
-    """#Dad jokes ftw        
+            pass
+            """await client.send_message(message.channel, 'That\'s not a valid command')
+#Dad jokes ftw        
     elif message.content.startswith('I am '):
         tempArray = message.content.split(" ")
         if len(tempArray)<4:
