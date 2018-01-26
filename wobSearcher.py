@@ -73,6 +73,11 @@ def findDate(date):
         return False
 
 def resolveSearch(inputString):
+    inputString = inputString.lower()
+    if inputString.startswith("!wob"):
+        inputString = inputString[4:]
+    while inputString.startswith(" "):
+        inputString = inputString[1:]
     breakpointList = breakpoints(inputString)
     breakpointList.sort()
     searchList = parseString(inputString, breakpointList)
@@ -152,7 +157,3 @@ def resolveSearch(inputString):
     afterDate = "{}-{}-{}".format(afterDate.year, afterMonthString, afterDayString)
     return ("https://wob.coppermind.net/adv_search/?query={}&date_from={}&date_to={}&speaker={}{}{}&ordering={}".format(query, afterDate, beforeDate, speaker,
                                                                                                                         tagString, antitagString, orderEquivalent))
-
-inputString = "myQuery !tags x ,  y, z  !not a, b, c !before 12/25/2016 !after 12/10/2005 !order orderType !speaker SpeakerName"
-searchURL = resolveSearch(inputString)
-print(searchURL)

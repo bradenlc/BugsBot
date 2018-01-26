@@ -7,6 +7,7 @@ import SH
 import roles
 import superfight
 import onRun
+import wobSearcher
 
 logging.basicConfig(level=logging.INFO)
 
@@ -100,6 +101,9 @@ async def executeUserCommands(message, command):
 
     elif command == "!nameme":
         await roles.nameMe(message, client)
+
+    elif command == "!wob":
+        await client.send_message(message.channel,wobSearcher.resolveSearch(message.content))
 
     elif command in ["!help", "!commands"]:
         await sendHelpMessage(message)
