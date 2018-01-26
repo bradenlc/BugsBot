@@ -40,8 +40,7 @@ userCommands = ["!remindme",
                 "!commands",
                 "!world",
                 "!info",
-                "!stats",
-                "!wob"]
+                "!stats"]
 
 adminCommands = ["!bedtime",
                  "!remind"]
