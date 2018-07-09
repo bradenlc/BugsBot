@@ -62,6 +62,7 @@ async def uniqueRole(message, client):
             requestedName = "{}'s role".format(message.author.name)
             uniqueRole = await client.create_role(message.server, name = requestedName)
             await client.add_roles(message.author, uniqueRole)
+            await client.move_role(message.server, uniqueRole, 3)
             return uniqueRole
         else:
             await client.send_message(message.server, "You don't have a unique role, and there are too many roles to give you a new one")
